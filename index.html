@@ -628,47 +628,51 @@
             }
         }
 
-        async function pollGenerationStatus(requestId) {
-            let attempts = 0;
-            const maxAttempts = 30; // Maksimal 90 detik (30 x 3 detik)
+async function pollGenerationStatus(requestId) {
+    let attempts = 0;
+    const maxAttempts = 30; // Maksimal 90 detik
 
-            pollingInterval = setInterval(async () => {
-                attempts++;
-                document.getElementById('loading-desc').innerText = `Menjahit pixel... (Proses ${Math.round((attempts/maxAttempts)*100)}%)`;
+    pollingInterval = setInterval(async () => {
+        attempts++;
+        document.getElementById('loading-desc').innerText = `Menjahit pixel... (Proses ${Math.round((attempts/maxAttempts)*100)}%)`;
 
-                try {
-                    const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', {
-                        body: { requestId: requestId }
-                    });
+        try {
+            const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', {
+                body: { requestId: requestId }
+            });
 
-                    if (error) throw error;
+            if (error) throw error;
+            
+            // 🔥 INI PENYELAMATNYA: Menampilkan error ASLI dari backend
+            if (data && data.success === false) {
+                clearInterval(pollingInterval);
+                throw new Error(data.error); 
+            }
 
-                    if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
-                        clearInterval(pollingInterval);
-                        
-                        // Potong token JIKA berhasil
-                        state.tokens -= 1; 
-                        updateHeader();
-                        
-                        document.getElementById('final-ai-image').src = data.imageUrl;
-                        showView('view-result');
-                    } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
-                        clearInterval(pollingInterval);
-                        throw new Error("Proses dibatalkan atau gagal di server AI.");
-                    }
-                    
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollingInterval);
-                        throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi.");
-                    }
+            if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
+                clearInterval(pollingInterval);
+                state.tokens -= 1; 
+                updateHeader();
+                document.getElementById('final-ai-image').src = data.imageUrl;
+                showView('view-result');
+            } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
+                clearInterval(pollingInterval);
+                throw new Error("Proses dibatalkan atau gagal di server AI.");
+            }
+            
+            if (attempts >= maxAttempts) {
+                clearInterval(pollingInterval);
+                throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi.");
+            }
 
-                } catch (err) {
-                    clearInterval(pollingInterval);
-                    alert("Gagal mengecek status: " + err.message);
-                    goBack();
-                }
-            }, 3000); // Polling setiap 3 detik
+        } catch (err) {
+            clearInterval(pollingInterval);
+            // Alert sekarang akan menunjukan AKAR MASALAHNYA
+            alert("GAGAL RENDER: " + err.message); 
+            goBack();
         }
+    }, 3000);
+}
 
         function downloadImage() { const imgUrl = document.getElementById('final-ai-image').src; if(imgUrl) window.open(imgUrl, '_blank'); }
 
