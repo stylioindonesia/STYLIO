@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stylio.id - AI Premium Stylist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SCRIPT MIDTRANS SNAP (SANDBOX) -->
+    <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-XpxhdwoqsZn1hrFj"></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; margin: 0 auto; }
+        .app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #ffffff; box-shadow: 0 0 40px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; overflow-x: hidden; }
+        
+        .view-section { width: 100%; flex-grow: 1; display: none; }
+        .view-section.active { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        input, textarea, button { outline: none; transition: all 0.2s; }
+        input:focus, textarea:focus { border-color: #f472b6; box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.15); }
+        
+        .loader-ring { display: inline-block; width: 50px; height: 50px; border: 4px solid #fce7f3; border-radius: 50%; border-top-color: #ec4899; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-content { background: white; width: 90%; max-width: 360px; border-radius: 1.5rem; padding: 1.5rem; transform: scale(0.95) translateY(10px); transition: all 0.2s ease; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-overlay.show .modal-content { transform: scale(1) translateY(0); }
+
+        .gender-btn.selected { background-color: #fce7f3; border-color: #ec4899; color: #be185d; }
+        .color-swatch { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); border: 2px solid white; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .wardrobe-card { flex: 0 0 125px; scroll-snap-align: start; border: 2px solid #e2e8f0; transition: all 0.2s; border-radius: 1rem; padding: 1rem; background: white; position: relative; cursor: pointer; }
+        .wardrobe-card.selected { border-color: #ec4899; background-color: #fdf2f8; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.2); }
+        .wardrobe-badge { position: absolute; top: -8px; right: -8px; background: #ec4899; color: white; width: 24px; height: 24px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; z-index: 20; }
+        .wardrobe-card.selected .wardrobe-badge { display: flex; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="app-container">
+        <!-- HEADER APP -->
+        <header class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-50">
+            <div class="flex items-center gap-2">
+                <div class="flex gap-1 mr-1">
+                    <button id="btn-back" onclick="goBack()" class="hidden w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm">◀</button>
+                    <button id="btn-forward" onclick="goForward()" class="hidden w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm">▶</button>
+                </div>
+                <h1 onclick="resetApp()" class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent cursor-pointer">
+                    stylio<span class="text-slate-800">.id</span>
+                </h1>
+            </div>
+            
+            <button id="btn-header-login" onclick="triggerDirectLogin()" class="text-sm font-bold text-slate-600 bg-slate-100 px-4 py-1.5 rounded-full active:bg-slate-200 transition">Masuk</button>
+            <div id="user-wallet" class="hidden items-center gap-3">
+                <div class="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="showView('view-pricing')">
+                    <span class="text-xs font-bold text-slate-700">🪙 <span id="token-count">0</span></span>
+                </div>
+                <button onclick="handleLogout()" class="text-xs text-slate-400 font-bold underline">Keluar</button>
+            </div>
+        </header>
+
+        <!-- AREA UTAMA -->
+        <main id="main-content" class="flex-grow flex flex-col">
+            
+            <!-- VIEW 1: DATA INPUT -->
+            <div id="view-input" class="view-section px-5 py-6" style="display: block;">
+                <h2 class="text-2xl font-bold mb-1">Audit Gayamu ✨</h2>
+                <p class="text-sm text-slate-500 mb-6">Dapatkan analisis proporsi tubuh dan wajah level elit secara gratis.</p>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">1. Upload Foto Wajah/Badan</label>
+                    <div onclick="document.getElementById('file-upload').click()" id="upload-box" class="border-2 border-dashed border-pink-200 bg-pink-50/50 rounded-2xl p-6 text-center active:bg-pink-100 transition cursor-pointer">
+                        <div class="text-4xl mb-2">📸</div>
+                        <h3 class="font-semibold text-pink-700 text-sm">Tap untuk pilih foto</h3>
+                    </div>
+                    <input type="file" id="file-upload" class="hidden" accept="image/*">
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">2. Gender</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="selectGender('Pria')" id="btn-gender-Pria" class="gender-btn border border-slate-200 bg-slate-50 py-3 rounded-xl text-sm font-bold text-slate-600">Pria</button>
+                        <button type="button" onclick="selectGender('Wanita')" id="btn-gender-Wanita" class="gender-btn border border-slate-200 bg-slate-50 py-3 rounded-xl text-sm font-bold text-slate-600">Wanita</button>
+                    </div>
+                    <input type="hidden" id="input-gender">
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">3. Postur Tubuh</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="relative">
+                            <input type="number" id="input-tb" placeholder="Tinggi" class="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                            <span class="absolute right-4 top-3.5 text-xs font-bold text-slate-400">cm</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="input-bb" placeholder="Berat" class="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                            <span class="absolute right-4 top-3.5 text-xs font-bold text-slate-400">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">4. Event / Vibe Target (Opsional)</label>
+                    <textarea id="input-style" rows="2" placeholder="Contoh: Profesional elegan, Old money, Casual streetwear..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium resize-none"></textarea>
+                </div>
+
+                <button onclick="submitForm()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform">
+                    Analisis Sekarang (Gratis) 🔍
+                </button>
+            </div>
+
+            <!-- VIEW 2: LOGIN WALL -->
+            <div id="view-login" class="view-section is-flex-view flex-col items-center justify-center min-h-[70vh] px-5 py-10">
+                <div class="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner border border-pink-100">🔒</div>
+                <h2 class="text-2xl font-bold text-center mb-2">Simpan Laporanmu!</h2>
+                <p class="text-sm text-slate-500 text-center mb-8 px-2">Masuk ke <strong>stylio.id</strong> untuk melihat hasil analisis Pro Stylist senilai jutaan rupiah ini.</p>
+                <button onclick="handleGoogleLogin()" class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl shadow-sm active:bg-slate-50 flex justify-center items-center gap-3">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
+                    Lanjutkan dengan Google
+                </button>
+            </div>
+
+            <!-- VIEW 3: LOADING -->
+            <div id="view-loading" class="view-section is-flex-view flex-col items-center justify-center min-h-[70vh] text-center px-5">
+                <div class="loader-ring mb-6"></div>
+                <h2 id="loading-title" class="text-xl font-bold mb-2">Memproses...</h2>
+                <p id="loading-desc" class="text-sm text-slate-500">Mohon tunggu sebentar.</p>
+            </div>
+
+            <!-- VIEW 4: PERSONAL STYLE REPORT DEEP DIVE -->
+            <div id="view-report" class="view-section px-4 py-6 bg-slate-50 min-h-screen relative pb-32">
+                
+                <div class="text-center mb-6">
+                    <span class="bg-pink-100 text-pink-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Premium Insight</span>
+                    <h2 class="text-2xl font-extrabold mt-3 text-slate-800">Master Blueprint Gayamu</h2>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-5">
+                    <h3 class="font-bold text-slate-700 text-sm mb-4 border-b border-slate-100 pb-2">📐 Arsitektur Tubuh & Wajah</h3>
+                    <div class="space-y-4">
+                        <div><p class="text-[10px] text-slate-400 font-bold uppercase">Analisis Wajah</p><p id="rep-face" class="text-sm font-medium text-slate-800 leading-relaxed">-</p></div>
+                        <div><p class="text-[10px] text-slate-400 font-bold uppercase">Kibbe Body Type</p><p id="rep-body" class="text-sm font-medium text-slate-800 leading-relaxed">-</p></div>
+                        <div><p class="text-[10px] text-slate-400 font-bold uppercase">Kitchener Essence (Aura Inti)</p><p id="rep-essence" class="text-sm font-bold text-pink-600">-</p></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-5 rounded-2xl shadow-md mb-5 text-white">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-slate-200 text-sm">🎨 Color Season</h3>
+                        <span id="rep-season" class="text-xs font-bold bg-white/20 px-2 py-1 rounded">-</span>
+                    </div>
+                    <div class="mb-4"><p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Primer</p><div id="rep-colors-primary" class="flex gap-2"></div></div>
+                    <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Aksen</p><div id="rep-colors-accent" class="flex gap-2"></div></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-5">
+                    <h3 class="font-bold text-slate-700 text-sm mb-3">🪄 Trik Ilusi Optik</h3>
+                    <ul id="rep-tricks" class="text-xs text-slate-600 space-y-2 list-disc pl-4 mb-4"></ul>
+                    <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <div><h4 class="font-bold text-emerald-600 text-[10px] uppercase mb-2">✅ Do's</h4><ul id="rep-dos" class="text-[10px] text-slate-600 space-y-1 list-disc pl-3"></ul></div>
+                        <div><h4 class="font-bold text-rose-600 text-[10px] uppercase mb-2">❌ Don'ts</h4><ul id="rep-donts" class="text-[10px] text-slate-600 space-y-1 list-disc pl-3"></ul></div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-lg font-extrabold text-slate-800 mb-1">Rakit Outfit AI-mu</h3>
+                    <p class="text-xs text-slate-500 mb-4">Pilih 1 item dari setiap kategori yang dikurasi khusus untuk proporsimu.</p>
+                    
+                    <!-- Kategori List -->
+                    <div class="mb-5">
+                        <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
+                            <span class="flex items-center gap-2">👕 Atasan <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
+                            <span id="status-tops" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
+                        </h4>
+                        <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-tops"></div>
+                    </div>
+                    <div class="mb-5">
+                        <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
+                            <span class="flex items-center gap-2">👖 Bawahan <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
+                            <span id="status-bottoms" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
+                        </h4>
+                        <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-bottoms"></div>
+                    </div>
+                    <div class="mb-5">
+                        <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
+                            <span class="flex items-center gap-2">👟 Sepatu <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
+                            <span id="status-shoes" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
+                        </h4>
+                        <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-shoes"></div>
+                    </div>
+                    <div class="mb-5">
+                        <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
+                            <span class="flex items-center gap-2">🕶️ Aksesoris <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
+                            <span id="status-accessories" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
+                        </h4>
+                        <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-accessories"></div>
+                    </div>
+                </div>
+
+                <!-- CTA Paywall -->
+                <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-4 bg-white/90 backdrop-blur-md border-t border-slate-100 z-40">
+                    <button id="btn-generate" disabled onclick="openTokenModal()" class="w-full bg-slate-300 text-white font-bold py-4 rounded-xl shadow-none transition-all flex items-center justify-center gap-2">
+                        <span>Pilih Semua Item Dulu</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 5: FOTO JADI & HASIL PREMIUM -->
+            <div id="view-result" class="view-section px-5 py-6 bg-slate-900 text-white min-h-screen">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-pink-400">Stylio Premium</h2>
+                </div>
+                <div class="relative rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/10">
+                    <img id="final-ai-image" src="" class="w-full object-cover aspect-[3/4] bg-slate-800">
+                </div>
+                
+                <!-- TOMBOL DOWNLOAD & SHARE -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="downloadImage()" class="flex items-center justify-center gap-2 bg-white text-slate-900 font-bold py-3.5 rounded-xl active:bg-slate-200 transition">
+                        ⬇️ Simpan
+                    </button>
+                    <button onclick="shareToIG()" class="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white font-bold py-3.5 rounded-xl active:opacity-80 transition">
+                        📸 Share IG
+                    </button>
+                </div>
+
+                <div class="bg-white/10 p-4 rounded-xl flex gap-3 text-sm text-slate-200 mb-6 border border-white/10">
+                    <span class="text-xl">💎</span><p>Outfit ini diracik khusus berdasarkan proporsi dan palet warnamu.</p>
+                </div>
+
+                <button onclick="resetApp()" class="w-full border-2 border-slate-700 text-slate-300 font-bold py-4 rounded-xl active:bg-slate-800 transition flex items-center justify-center gap-2">
+                    🔄 Upload Foto Lain
+                </button>
+            </div>
+
+<!-- VIEW 6: PAYWALL / TOPUP MIDTRANS -->
+            <div id="view-pricing" class="view-section px-5 py-8 bg-slate-50 min-h-screen">
+                <div class="text-center mb-6 mt-6">
+                    <div class="text-5xl mb-4">💳</div>
+                    <h2 class="text-2xl font-bold mb-2">Top Up Token</h2>
+                    <p class="text-sm text-slate-500">Pilih paket yang sesuai untuk terus mencoba berbagai gaya AI Pro Stylist.</p>
+                </div>
+                
+                <div class="space-y-3 mb-6">
+                    <!-- PAKET 1 -->
+                    <button onclick="buyToken('pkg_1')" class="w-full bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between active:border-pink-500 transition">
+                        <div class="text-left"><h3 class="font-bold text-lg text-slate-800">1 Token</h3></div>
+                        <div class="text-right"><p class="font-extrabold text-lg text-pink-600">Rp 9.900</p></div>
+                    </button>
+                    <!-- PAKET 2 -->
+                    <button onclick="buyToken('pkg_5')" class="w-full bg-white p-4 rounded-2xl border-2 border-pink-400 shadow-md flex items-center justify-between relative active:scale-[0.98] transition">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">🔥 POPULER</span>
+                        <div class="text-left"><h3 class="font-bold text-lg text-slate-800">5 Token</h3></div>
+                        <div class="text-right"><p class="font-extrabold text-lg text-pink-600">Rp 29.900</p></div>
+                    </button>
+                    <!-- PAKET 3 -->
+                    <button onclick="buyToken('pkg_10')" class="w-full bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between active:border-pink-500 transition">
+                        <div class="text-left"><h3 class="font-bold text-lg text-slate-800">10 Token</h3></div>
+                        <div class="text-right"><p class="font-extrabold text-lg text-pink-600">Rp 49.900</p></div>
+                    </button>
+                    <!-- PAKET 4 -->
+                    <button onclick="buyToken('pkg_100')" class="w-full bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-sm flex items-center justify-between active:scale-[0.98] transition">
+                        <div class="text-left"><h3 class="font-bold text-lg text-white">100 Token</h3></div>
+                        <div class="text-right"><p class="font-extrabold text-lg text-pink-400">Rp 349.000</p></div>
+                    </button>
+                    <!-- PAKET 5 -->
+                    <button onclick="buyToken('pkg_1000')" class="w-full bg-gradient-to-r from-amber-200 to-yellow-400 p-4 rounded-2xl border border-yellow-500 shadow-sm flex items-center justify-between active:scale-[0.98] transition">
+                        <div class="text-left"><h3 class="font-extrabold text-lg text-yellow-900">1000 Token</h3><p class="text-[10px] font-bold text-yellow-800 uppercase">Sultan Pack</p></div>
+                        <div class="text-right"><p class="font-extrabold text-lg text-yellow-900">Rp 1.499.000</p></div>
+                    </button>
+                </div>
+
+                <button onclick="goBack()" class="w-full text-sm font-bold text-slate-500 py-3 bg-slate-200 rounded-xl active:bg-slate-300">Batal / Kembali</button>
+            </div>
+
+    <!-- POPUP MODAL -->
+    <div id="modal-token" class="modal-overlay">
+        <div class="modal-content text-center">
+            <div class="w-12 h-12 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-xl mx-auto mb-4">💎</div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Generate Foto Premium?</h3>
+            <p class="text-sm text-slate-500 mb-6">Memotong <strong>1 Token</strong>. Sisa token kamu: <strong id="modal-sisa-token" class="text-slate-700">0</strong>.</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-token')" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl active:bg-slate-200">Batal</button>
+                <button onclick="executeGenerate()" class="flex-1 bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 rounded-xl shadow-lg active:opacity-90">Ya, Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ddigivdqvsvyztswhqdb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaWdpdmRxdnN2eXp0c3docWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MDY5MTYsImV4cCI6MjEwMjE4MjkxNn0.xTyVrLjsuHP5WHA2mlFva0Cdzel7rqLhzJX_ZE6iek0';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let state = {
+            photoUploaded: false, photoFile: null, tokens: 0, isLoggedIn: false, userId: null, userEmail: null, userPhotoUrl: null, analysisData: null,
+            selectedWardrobe: { tops: null, bottoms: null, shoes: null, accessories: null }
+        };
+
+        let viewHistory = []; let currentHistoryIdx = -1;
+        function showView(viewId, isHistoryNavigation = false) {
+            document.querySelectorAll('.view-section').forEach(el => { el.style.display = 'none'; el.classList.remove('active'); });
+            const target = document.getElementById(viewId);
+            if (target.classList.contains('is-flex-view')) { target.style.display = 'flex'; } else { target.style.display = 'block'; }
+            target.classList.add('active'); window.scrollTo(0, 0);
+            if (!isHistoryNavigation) {
+                viewHistory = viewHistory.slice(0, currentHistoryIdx + 1);
+                if (viewHistory[viewHistory.length - 1] !== viewId) { viewHistory.push(viewId); currentHistoryIdx++; }
+            }
+            updateNavButtons();
+        }
+        function goBack() { if (currentHistoryIdx > 0) { currentHistoryIdx--; showView(viewHistory[currentHistoryIdx], true); } }
+        function goForward() { if (currentHistoryIdx < viewHistory.length - 1) { currentHistoryIdx++; showView(viewHistory[currentHistoryIdx], true); } }
+        function updateNavButtons() {
+            document.getElementById('btn-back').className = currentHistoryIdx > 0 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden";
+            document.getElementById('btn-forward').className = currentHistoryIdx < viewHistory.length - 1 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden";
+        }
+        function resetApp() { viewHistory = []; currentHistoryIdx = -1; showView('view-input'); }
+
+        window.onload = async () => {
+            showView('view-input');
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                state.isLoggedIn = true; 
+                state.userId = session.user.id;
+                state.userEmail = session.user.email; // Simpan email untuk Midtrans
+                
+                const { data: profile } = await supabaseClient.from('profiles').select('tokens').eq('id', state.userId).single();
+                state.tokens = profile ? profile.tokens : 0; updateHeader();
+
+                if (localStorage.getItem('wantsToGenerate') === 'true') {
+                    localStorage.removeItem('wantsToGenerate'); 
+                    document.getElementById('input-gender').value = localStorage.getItem('tempGender') || '';
+                    document.getElementById('input-tb').value = localStorage.getItem('tempTb') || '';
+                    document.getElementById('input-bb').value = localStorage.getItem('tempBb') || '';
+                    document.getElementById('input-style').value = localStorage.getItem('tempStyle') || '';
+                    if(document.getElementById('input-gender').value) selectGender(document.getElementById('input-gender').value);
+                    if (localStorage.getItem('tempPhoto')) {
+                        state.photoUploaded = true;
+                        document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`;
+                    }
+                    startAnalysis(); 
+                }
+            }
+        };
+
+        function selectGender(g) { document.getElementById('input-gender').value = g; document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected')); document.getElementById(`btn-gender-${g}`).classList.add('selected'); }
+        async function handleGoogleLogin() { await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
+        async function handleLogout() { await supabaseClient.auth.signOut(); state.isLoggedIn = false; state.tokens = 0; updateHeader(); resetApp(); }
+        function updateHeader() {
+            if(state.isLoggedIn) { document.getElementById('btn-header-login').classList.add('hidden'); document.getElementById('user-wallet').classList.remove('hidden'); document.getElementById('user-wallet').classList.add('flex'); document.getElementById('token-count').innerText = state.tokens; } 
+            else { document.getElementById('btn-header-login').classList.remove('hidden'); document.getElementById('user-wallet').classList.add('hidden'); document.getElementById('user-wallet').classList.remove('flex'); }
+        }
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            if(e.target.files.length > 0) {
+                state.photoUploaded = true; state.photoFile = e.target.files[0];
+                const r = new FileReader(); r.onload = function(evt) { try { localStorage.setItem('tempPhoto', evt.target.result); } catch(err){} }; r.readAsDataURL(state.photoFile);
+                document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`;
+            }
+        });
+
+        function submitForm() {
+            const g = document.getElementById('input-gender').value, tb = document.getElementById('input-tb').value, bb = document.getElementById('input-bb').value, st = document.getElementById('input-style').value;
+            if(!state.photoUploaded || !g || !tb || !bb) { alert("Lengkapi data!"); return; }
+            localStorage.setItem('tempGender', g); localStorage.setItem('tempTb', tb); localStorage.setItem('tempBb', bb); localStorage.setItem('tempStyle', st);
+            if(!state.isLoggedIn) { localStorage.setItem('wantsToGenerate', 'true'); showView('view-login'); } else { startAnalysis(); }
+        }
+        function triggerDirectLogin() { localStorage.removeItem('wantsToGenerate'); handleGoogleLogin(); }
+
+        async function startAnalysis() {
+            showView('view-loading');
+            document.getElementById('loading-title').innerText = "AI Menganalisis 🧠";
+            document.getElementById('loading-desc').innerText = "Membuat Blueprint Gaya (bisa memakan 20-40 detik)...";
+            
+            try {
+                let file = state.photoFile;
+                if (!file) { const b64 = localStorage.getItem('tempPhoto'); if (!b64) throw new Error("Foto hilang."); file = await (await fetch(b64)).blob(); }
+                const fileName = `${state.userId}-${Date.now()}.jpg`;
+                const { error: upErr } = await supabaseClient.storage.from('user_photos').upload(fileName, file);
+                if (upErr) throw upErr;
+                state.userPhotoUrl = supabaseClient.storage.from('user_photos').getPublicUrl(fileName).data.publicUrl;
+
+                const { data: res, error: err } = await supabaseClient.functions.invoke('analyze-profile', {
+                    body: { userPhotoUrl: state.userPhotoUrl, gender: localStorage.getItem('tempGender'), height: localStorage.getItem('tempTb'), weight: localStorage.getItem('tempBb'), stylePreference: localStorage.getItem('tempStyle') }
+                });
+                if (err) throw err; if (!res.success) throw new Error(res.error);
+
+                state.analysisData = res.data;
+                renderReportUI(); localStorage.removeItem('tempPhoto'); showView('view-report');
+            } catch (e) { alert("Error: " + e.message); goBack(); }
+        }
+
+        function renderReportUI() {
+            const d = state.analysisData;
+            document.getElementById('rep-face').innerText = d.deepAnalysis?.faceGeometry || '-';
+            document.getElementById('rep-body').innerText = d.deepAnalysis?.bodyArchitecture || '-';
+            document.getElementById('rep-essence').innerText = d.deepAnalysis?.kitchenerEssence || '-';
+            document.getElementById('rep-season').innerText = d.deepAnalysis?.colorSeason || '-';
+
+            const pC = document.getElementById('rep-colors-primary'); pC.innerHTML = '';
+            d.colorPalette?.primary?.forEach(hex => pC.innerHTML += `<div class="color-swatch" style="background-color: ${hex};"></div>`);
+            const aC = document.getElementById('rep-colors-accent'); aC.innerHTML = '';
+            d.colorPalette?.accent?.forEach(hex => aC.innerHTML += `<div class="color-swatch" style="background-color: ${hex}; border-color: #334155;"></div>`);
+
+            const tC = document.getElementById('rep-tricks'); tC.innerHTML = '';
+            d.deepAnalysis?.opticalTricks?.forEach(t => tC.innerHTML += `<li>${t}</li>`);
+            
+            const dosC = document.getElementById('rep-dos'); dosC.innerHTML = ''; d.styleDetails?.dos?.forEach(d => dosC.innerHTML += `<li>${d}</li>`);
+            const dontsC = document.getElementById('rep-donts'); dontsC.innerHTML = ''; d.styleDetails?.donts?.forEach(d => dontsC.innerHTML += `<li>${d}</li>`);
+
+            state.selectedWardrobe = { tops: null, bottoms: null, shoes: null, accessories: null };
+
+            renderOptions('tops', d.wardrobeOptions?.tops, '👕');
+            renderOptions('bottoms', d.wardrobeOptions?.bottoms, '👖');
+            renderOptions('shoes', d.wardrobeOptions?.shoes, '👟');
+            renderOptions('accessories', d.wardrobeOptions?.accessories, '🕶️');
+        }
+
+        function renderOptions(category, items, icon) {
+            const container = document.getElementById(`list-${category}`); container.innerHTML = '';
+            if(!items || items.length === 0) return;
+            items.forEach((item, idx) => {
+                let badgeHtml = idx === 0 ? '<div class="absolute -top-2 -left-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full z-10 shadow-sm border border-white">⭐ BEST</div>' : '';
+                container.innerHTML += `
+                    <div class="wardrobe-card mt-2" id="card-${category}-${idx}" onclick="selectItem('${category}', ${idx}, '${item.prompt.replace(/'/g, "\\'")}')">
+                        ${badgeHtml}
+                        <div class="text-2xl mb-2">${icon}</div>
+                        <p class="text-[11px] font-bold text-slate-700 leading-tight">${item.label}</p>
+                        <div class="wardrobe-badge">✓</div>
+                    </div>`;
+            });
+            if(items.length > 0) setTimeout(() => selectItem(category, 0, items[0].prompt.replace(/'/g, "\\'")), 100);
+        }
+
+        function selectItem(category, idx, promptStr) {
+            state.selectedWardrobe[category] = promptStr;
+            const container = document.getElementById(`list-${category}`);
+            container.querySelectorAll('.wardrobe-card').forEach(c => c.classList.remove('selected'));
+            const selectedCard = document.getElementById(`card-${category}-${idx}`);
+            if(selectedCard) selectedCard.classList.add('selected');
+            
+            const status = document.getElementById(`status-${category}`);
+            status.innerText = "Terpilih"; status.className = "text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded";
+            checkAllSelections();
+        }
+
+        function checkAllSelections() {
+            const s = state.selectedWardrobe;
+            const btn = document.getElementById('btn-generate');
+            if(s.tops && s.bottoms && s.shoes && s.accessories) {
+                btn.disabled = false;
+                btn.className = "w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2";
+                btn.innerHTML = `<span>🪄 Jahit Foto Outfit Ini</span><span class="bg-white/20 px-2 py-0.5 rounded text-xs">Rp 10.000</span>`;
+            }
+        }
+
+        function openTokenModal() { if(state.tokens <= 0) showView('view-pricing'); else { document.getElementById('modal-sisa-token').innerText = state.tokens; openModal('modal-token'); } }
+
+        async function executeGenerate() {
+            closeModal('modal-token'); showView('view-loading');
+            document.getElementById('loading-title').innerText = "Mengarahkan Gaya & Menjahit Foto 📸";
+            document.getElementById('loading-desc').innerText = "AI sedang menyesuaikan pose dan latar belakang (20-30 detik)...";
+
+            try {
+                const s = state.selectedWardrobe;
+                const finalFluxPrompt = `${s.tops}, ${s.bottoms}, ${s.shoes}, ${s.accessories}`;
+                const photoDir = state.analysisData.photographyDirection || {};
+
+                const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', {
+                    body: { userId: state.userId, userPhotoUrl: state.userPhotoUrl, gender: localStorage.getItem('tempGender'), fluxPrompt: finalFluxPrompt, pose: photoDir.pose, background: photoDir.background }
+                });
+
+                if (aiError) throw aiError; if (!aiData.success) throw new Error(aiData.error);
+
+                state.tokens -= 1; updateHeader();
+                document.getElementById('final-ai-image').src = aiData.imageUrl;
+                showView('view-result');
+                
+            } catch (error) { alert("Kesalahan Render: " + error.message); goBack(); }
+        }
+
+        function downloadImage() { const imgUrl = document.getElementById('final-ai-image').src; if(imgUrl) window.open(imgUrl, '_blank'); }
+
+        async function shareToIG() {
+            const imgUrl = document.getElementById('final-ai-image').src; if(!imgUrl) return;
+            try {
+                const response = await fetch(imgUrl); const blob = await response.blob(); const file = new File([blob], 'stylio-outfit.jpg', { type: blob.type });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ title: 'My AI Stylist Outfit', text: 'Cek outfit rekomendasi AI Stylist untukku dari stylio.id! ✨', files: [file] }); } 
+                else { alert("Browser Anda tidak mendukung share gambar langsung. Silakan Download fotonya terlebih dahulu lalu post ke IG!"); }
+            } catch (error) { console.error('Error sharing:', error); }
+        }
+
+// ==========================================
+        // LOGIKA PEMBAYARAN MIDTRANS
+        // ==========================================
+        async function buyToken(packageId) {
+            showView('view-loading');
+            document.getElementById('loading-title').innerText = "Menyiapkan Tagihan 💳";
+            document.getElementById('loading-desc').innerText = "Mohon tunggu sebentar...";
+
+            try {
+                // Panggil Backend dengan packageId
+                const { data, error } = await supabaseClient.functions.invoke('create-transaction', {
+                    body: { userId: state.userId, email: state.userEmail, packageId: packageId }
+                });
+
+                if (error) throw error;
+                if (!data.success) throw new Error(data.error);
+
+                // Kembalikan view ke pricing (di belakang modal Midtrans)
+                showView('view-pricing');
+
+                // Munculkan Pop-up Midtrans
+                window.snap.pay(data.snapToken, {
+                    onSuccess: function(result) {
+                        alert("Pembayaran Berhasil diproses!");
+                        window.location.reload(); 
+                    },
+                    onPending: function(result) { alert("Menunggu pembayaran Anda diselesaikan."); },
+                    onError: function(result) { alert("Pembayaran Gagal. Silakan coba lagi."); },
+                    onClose: function() { alert('Anda menutup layar pembayaran sebelum menyelesaikannya.'); }
+                });
+            } catch (err) {
+                alert("Kesalahan Sistem Pembayaran: " + err.message);
+                showView('view-pricing');
+            }
+        }
+        
+        
+    </script>
+</body>
+</html>
