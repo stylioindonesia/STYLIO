@@ -21,6 +21,9 @@
         .step-container { display: none; animation: fadeIn 0.4s ease-out forwards; }
         .step-container.active { display: block; }
 
+        /* Mencegah icon scroll di input number */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input, textarea, button { outline: none; transition: all 0.2s; }
         input:focus, textarea:focus { border-color: #f472b6; box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.15); }
         
@@ -53,18 +56,22 @@
             <div class="flex items-center gap-2">
                 <div class="flex gap-1 mr-1">
                     <button id="btn-back" onclick="goBack()" class="hidden w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm">◀</button>
-                    <button id="btn-forward" onclick="goForward()" class="hidden w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm">▶</button>
                 </div>
                 <h1 onclick="resetApp()" class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent cursor-pointer">
                     stylio<span class="text-slate-800">.id</span>
                 </h1>
             </div>
+            
             <button id="btn-header-login" onclick="triggerDirectLogin()" class="text-sm font-bold text-slate-600 bg-slate-100 px-4 py-1.5 rounded-full active:bg-slate-200 transition">Masuk</button>
-            <div id="user-wallet" class="hidden items-center gap-3">
-                <div class="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="showView('view-pricing')">
+            
+            <!-- WALLET & BUY TOKEN -->
+            <div id="user-wallet" class="hidden items-center gap-2">
+                <div class="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-700">🪙 <span id="token-count">0</span></span>
                 </div>
-                <button onclick="handleLogout()" class="text-xs text-slate-400 font-bold underline">Keluar</button>
+                <!-- Tombol Tambah Token -->
+                <button onclick="showView('view-pricing')" class="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-[11px] font-bold active:bg-pink-200 transition">+ Tambah</button>
+                <button onclick="handleLogout()" class="text-[10px] text-slate-400 font-bold underline ml-1">Keluar</button>
             </div>
         </header>
 
@@ -79,7 +86,7 @@
                     </div>
 
                     <form id="audit-form" onsubmit="event.preventDefault(); triggerSubmitProcess();">
-                        <!-- STEP 1: UPLOAD FOTO (SIMPLE) -->
+                        <!-- STEP 1: UPLOAD FOTO -->
                         <div id="step-1" class="step-container active">
                             
                             <label class="block text-sm font-bold text-slate-700 mb-4">1. Unggah Foto Anda</label>
@@ -95,7 +102,7 @@
                                 <span class="text-blue-500 text-lg mt-0.5">💡</span>
                                 <p id="photo-tips-text" class="text-xs text-blue-800 leading-relaxed font-medium">
                                     <strong class="font-bold block mb-1">Tips Hasil Maksimal:</strong> 
-                                    Gunakan foto seluruh badan (atas sampai bawah) dan pastikan Anda sendirian di foto tersebut. AI tidak akan bisa membedah bentuk tubuh Anda jika tidak terlihat jelas.
+                                    Gunakan foto seluruh badan (atas sampai bawah) dan pastikan Anda sendirian di foto tersebut. AI tidak akan bisa membedah bentuk tubuh Anda jika terpotong.
                                 </p>
                             </div>
 
@@ -116,11 +123,12 @@
                             </div>
                         </div>
 
-                        <!-- STEP 3: TINGGI BADAN -->
+                        <!-- STEP 3: TINGGI BADAN (WITH HARDCODE LIMITS) -->
                         <div id="step-3" class="step-container">
                             <label class="block text-sm font-bold text-slate-700 mb-2">3. Tinggi Badan</label>
                             <div class="relative mb-6">
-                                <input type="number" id="input-tb" placeholder="Contoh: 165" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                                <!-- HARDCODE: Hanya bisa input 3 digit, maksimal angka 250 -->
+                                <input type="number" id="input-tb" oninput="if(this.value.length > 3) this.value = this.value.slice(0,3); if(this.value > 250) this.value = 250;" placeholder="Contoh: 165" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                                 <span class="absolute right-4 top-4 text-xs font-bold text-slate-400">cm</span>
                             </div>
                             <div class="flex gap-3">
@@ -129,11 +137,12 @@
                             </div>
                         </div>
 
-                        <!-- STEP 4: BERAT BADAN & VIBE -->
+                        <!-- STEP 4: BERAT BADAN (WITH HARDCODE LIMITS) -->
                         <div id="step-4" class="step-container">
                             <label class="block text-sm font-bold text-slate-700 mb-2">4. Berat Badan & Target Acara</label>
                             <div class="relative mb-4">
-                                <input type="number" id="input-bb" placeholder="Contoh: 55" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                                <!-- HARDCODE: Hanya bisa input 3 digit, maksimal angka 250 -->
+                                <input type="number" id="input-bb" oninput="if(this.value.length > 3) this.value = this.value.slice(0,3); if(this.value > 250) this.value = 250;" placeholder="Contoh: 55" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                                 <span class="absolute right-4 top-4 text-xs font-bold text-slate-400">kg</span>
                             </div>
                             <div class="mb-6">
@@ -310,17 +319,30 @@
                     </div>
                 </div>
 
-                <!-- VIEW 5: HASIL -->
+                <!-- VIEW 5: HASIL (UPDATED) -->
                 <div id="view-result" class="view-section px-5 py-6 bg-slate-900 text-white min-h-screen" style="display: none;">
                     <h2 class="text-xl font-bold text-pink-400 mb-6">Stylio Premium</h2>
+                    
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/10">
                         <img id="final-ai-image" src="" class="w-full object-cover aspect-[3/4] bg-slate-800">
                     </div>
+                    
+                    <!-- BUTTON ACTION: SAVE & SHARE -->
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button onclick="downloadImage()" class="flex items-center justify-center gap-2 bg-white text-slate-900 font-bold py-3.5 rounded-xl">⬇️ Simpan</button>
                         <button onclick="shareToIG()" class="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white font-bold py-3.5 rounded-xl">📸 Share IG</button>
                     </div>
-                    <button onclick="resetApp()" class="w-full border-2 border-slate-700 text-slate-300 font-bold py-4 rounded-xl flex items-center justify-center gap-2">🔄 Rakit Gaya Lain</button>
+                    
+                    <!-- TOMBOL HARD RESET (BACK TO HOME) -->
+                    <button onclick="resetApp()" class="w-full border border-slate-700 text-slate-300 font-bold py-4 rounded-xl flex items-center justify-center gap-2 mb-8 hover:bg-slate-800 active:bg-slate-800 transition">🏠 Kembali ke Beranda</button>
+
+                    <!-- UPSELL: COBA GAYA LAIN -->
+                    <div class="border-t border-slate-700 pt-8 pb-10">
+                        <h3 class="text-sm font-bold text-slate-300 mb-4">✨ Coba Visualisasi Gaya Lain:</h3>
+                        <div id="other-styles-container" class="space-y-3">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- VIEW 6: PRICING -->
@@ -405,15 +427,48 @@
             if (target.classList.contains('is-flex-view')) { target.style.display = 'flex'; } else { target.style.display = 'block'; }
             target.classList.add('active'); window.scrollTo(0, 0);
             if (!isHistoryNavigation) { viewHistory = viewHistory.slice(0, currentHistoryIdx + 1); if (viewHistory[viewHistory.length - 1] !== viewId) { viewHistory.push(viewId); currentHistoryIdx++; } }
-            updateNavButtons();
+            
+            // Sembunyikan tombol back jika di menu utama
+            document.getElementById('btn-back').className = currentHistoryIdx > 0 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden"; 
         }
         function goBack() { if (currentHistoryIdx > 0) { currentHistoryIdx--; showView(viewHistory[currentHistoryIdx], true); } }
-        function goForward() { if (currentHistoryIdx < viewHistory.length - 1) { currentHistoryIdx++; showView(viewHistory[currentHistoryIdx], true); } }
-        function updateNavButtons() { 
-            document.getElementById('btn-back').className = currentHistoryIdx > 0 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden"; 
-            document.getElementById('btn-forward').className = currentHistoryIdx < viewHistory.length - 1 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden";
+        
+        // FUNGSI HARD RESET 100%
+        function resetApp() { 
+            // 1. Reset array history & view
+            viewHistory = []; currentHistoryIdx = -1; 
+            
+            // 2. Kosongkan Form Input
+            document.getElementById('input-gender').value = '';
+            document.getElementById('input-tb').value = '';
+            document.getElementById('input-bb').value = '';
+            document.getElementById('input-style').value = '';
+            document.getElementById('file-upload').value = '';
+            
+            // 3. Reset Tampilan UI Pilihan (Buttons & Box)
+            document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.vibe-pill').forEach(b => b.classList.remove('active'));
+            document.getElementById('upload-box').innerHTML = `<div class="text-5xl mb-3">📸</div><h3 class="font-bold text-pink-700 text-base">Tap untuk pilih foto</h3>`;
+            
+            // 4. Hapus State & Local Storage Cache
+            state.photoUploaded = false;
+            state.photoFile = null;
+            state.analysisData = null;
+            state.selectedStylePrompt = null;
+            
+            localStorage.removeItem('tempPhoto');
+            localStorage.removeItem('tempGender');
+            localStorage.removeItem('tempTb');
+            localStorage.removeItem('tempBb');
+            localStorage.removeItem('tempStyle');
+            
+            // 5. Kembali ke Kotak Step 1
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-1').classList.add('active');
+
+            // 6. Pindah ke Halaman Utama
+            showView('view-input'); 
         }
-        function resetApp() { viewHistory = []; currentHistoryIdx = -1; showView('view-input'); }
 
         window.onload = async () => {
             showView('view-input');
@@ -438,14 +493,14 @@
             }
         };
 
-        // Logic UI Input (Validasi Cerdas & Simpel)
+        // Logic UI Input
         function nextStep(step) {
             if(step === 2 && !state.photoUploaded) { alert("Tolong unggah foto Anda terlebih dahulu!"); return; }
             if(step === 3 && !document.getElementById('input-gender').value) { alert("Pilih gender Anda!"); return; }
             if(step === 4) {
                 const tb = parseInt(document.getElementById('input-tb').value);
-                if(!tb || tb < 50 || tb > 300) { 
-                    alert("⚠️ Tinggi badan tidak masuk akal. Mohon masukkan angka yang realistis (Contoh: 165)."); 
+                if(!tb || tb < 50) { 
+                    alert("⚠️ Tinggi badan tidak valid. Mohon masukkan angka yang realistis."); 
                     return; 
                 }
             }
@@ -473,7 +528,7 @@
             
             // Validasi Terakhir
             if(!state.photoUploaded || !g || !tb || !bb || !st) { alert("Lengkapi semua data dan target acara!"); return; }
-            if(bb < 20 || bb > 300) { alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (Contoh: 55)."); return; }
+            if(bb < 20) { alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang valid."); return; }
 
             localStorage.setItem('tempGender', g); localStorage.setItem('tempTb', tb); localStorage.setItem('tempBb', bb); localStorage.setItem('tempStyle', st);
             
@@ -592,31 +647,23 @@
 
             // --- INJEKSI DATA FREEMIUM BARU ---
             const da = d.deepAnalysis;
-
-            // Doppelganger
             document.getElementById('rep-doppelganger').innerText = da.celebrityDoppelganger || "Menunggu update sistem AI...";
-
-            // Gamification Score
             document.getElementById('rep-score-current').innerText = da.glowUpScore?.current || "45";
             document.getElementById('rep-score-potential').innerText = da.glowUpScore?.potential || "95";
 
-            // Optical Illusions
             const illusionsContainer = document.getElementById('rep-illusions');
             illusionsContainer.innerHTML = '';
-            const illusions = da.opticalIllusionHacks || ["Gunakan aturan sepertiga (Rule of Thirds) saat memasukkan baju.", "Samakan warna sepatu dengan celana untuk ilusi kaki panjang."];
-            illusions.forEach(hack => {
-                illusionsContainer.innerHTML += `<li>${hack}</li>`;
-            });
+            const illusions = da.opticalIllusionHacks || ["Gunakan aturan sepertiga (Rule of Thirds) saat memasukkan baju."];
+            illusions.forEach(hack => { illusionsContainer.innerHTML += `<li>${hack}</li>`; });
 
-            // Kryptonite & Superpower
             const kryptoniteContainer = document.getElementById('rep-kryptonite');
             kryptoniteContainer.innerHTML = '';
-            const kryptonites = da.styleKryptonite || ["Pakaian oversized tebal", "Motif horizontal besar"];
+            const kryptonites = da.styleKryptonite || ["Pakaian oversized tebal"];
             kryptonites.forEach(item => kryptoniteContainer.innerHTML += `<li>${item}</li>`);
 
             const superpowerContainer = document.getElementById('rep-superpower');
             superpowerContainer.innerHTML = '';
-            const superpowers = da.styleSuperpower || ["Jaket berstruktur pas badan", "Celana potongan lurus"];
+            const superpowers = da.styleSuperpower || ["Jaket berstruktur pas badan"];
             superpowers.forEach(item => superpowerContainer.innerHTML += `<li>${item}</li>`);
         }
 
@@ -633,6 +680,34 @@
         }
 
         function openTokenModal() { if(state.tokens <= 0) showView('view-pricing'); else { document.getElementById('modal-sisa-token').innerText = state.tokens; openModal('modal-token'); } }
+
+        // FUNGSI RENDER PILIHAN GAYA LAIN DI LAYAR HASIL
+        function renderOtherStyles() {
+            const container = document.getElementById('other-styles-container');
+            container.innerHTML = '';
+            if(!state.analysisData || !state.analysisData.styleReferences) return;
+
+            state.analysisData.styleReferences.forEach((style, idx) => {
+                if(style.prompt !== state.selectedStylePrompt) {
+                    container.innerHTML += `
+                        <button onclick="selectAndGenerateOtherStyle(${idx}, '${style.prompt.replace(/'/g, "\\'")}')" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-left active:bg-slate-700 flex justify-between items-center transition">
+                            <div class="pr-3">
+                                <h4 class="font-bold text-slate-200 text-sm mb-1">${style.title}</h4>
+                                <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">${style.desc}</p>
+                            </div>
+                            <div class="bg-slate-700/80 border border-slate-600 px-3 py-1.5 rounded-lg text-[10px] font-bold text-pink-400 shrink-0 flex items-center gap-1 shadow-sm">
+                                <span>🪙 1</span>
+                            </div>
+                        </button>
+                    `;
+                }
+            });
+        }
+
+        function selectAndGenerateOtherStyle(idx, promptStr) {
+            state.selectedStylePrompt = promptStr;
+            openTokenModal();
+        }
 
         let pollingInterval;
 
@@ -688,18 +763,16 @@
                     if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
                         clearInterval(pollingInterval);
                         
-                        // PEMOTONGAN TOKEN DI FRONTEND
+                        // PEMOTONGAN TOKEN YANG SEBENARNYA (SYNC KE DATABASE)
                         state.tokens -= 1;
                         updateHeader();
-                        
-                        // SINKRONISASI KE DATABASE (TIDAK LAGI HANYA DI LAYAR)
                         if (state.userId) {
-                            await supabaseClient.from('profiles')
-                                .update({ tokens: state.tokens })
-                                .eq('id', state.userId);
+                            await supabaseClient.from('profiles').update({ tokens: state.tokens }).eq('id', state.userId);
                         }
 
+                        // Menampilkan hasil
                         document.getElementById('final-ai-image').src = data.imageUrl;
+                        renderOtherStyles(); // Merender gaya sisa yang belum dipilih
                         showView('view-result');
                     } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
                         clearInterval(pollingInterval);
