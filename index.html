@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stylio.id - AI Premium Stylist</title>
+    <title>Stylio.id - Premium AI Personal Stylist</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- SCRIPT MIDTRANS SNAP (SANDBOX) -->
     <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-XpxhdwoqsZn1hrFj"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; margin: 0 auto; }
@@ -18,7 +18,6 @@
         .view-section.active { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Style Wizard Langkah Bertahap */
         .step-container { display: none; animation: fadeIn 0.4s ease-out forwards; }
         .step-container.active { display: block; }
 
@@ -30,29 +29,26 @@
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
         .modal-overlay.show { display: flex; opacity: 1; }
-        .modal-content { background: white; width: 90%; max-width: 360px; border-radius: 1.5rem; padding: 1.5rem; transform: scale(0.95) translateY(10px); transition: all 0.2s ease; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-content { background: white; width: 90%; max-width: 360px; border-radius: 1.5rem; padding: 1.5rem; transform: scale(0.95) translateY(10px); transition: all 0.2s ease; }
         .modal-overlay.show .modal-content { transform: scale(1) translateY(0); }
 
-        .gender-btn.selected { background-color: #fce7f3; border-color: #ec4899; color: #be185d; }
-        .color-swatch { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); border: 2px solid white; }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .wardrobe-card { flex: 0 0 125px; scroll-snap-align: start; border: 2px solid #e2e8f0; transition: all 0.2s; border-radius: 1rem; padding: 1rem; background: white; position: relative; cursor: pointer; }
-        .wardrobe-card.selected { border-color: #ec4899; background-color: #fdf2f8; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.2); }
-        .wardrobe-badge { position: absolute; top: -8px; right: -8px; background: #ec4899; color: white; width: 24px; height: 24px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; z-index: 20; }
-        .wardrobe-card.selected .wardrobe-badge { display: flex; }
-
-        /* Style Pill Buttons */
+        .gender-btn.selected { background-color: #fdf2f8; border-color: #ec4899; color: #be185d; }
         .vibe-pill { transition: all 0.2s; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; }
         .vibe-pill.active { background-color: #ec4899 !important; color: white !important; border-color: #ec4899 !important; }
+
+        .color-swatch { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); border: 2px solid white; }
+        
+        .style-card { border: 2px solid #e2e8f0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 1.25rem; background: white; cursor: pointer; position: relative; overflow: hidden; }
+        .style-card:hover { border-color: #fbcfe8; }
+        .style-card.selected { border-color: #ec4899; background: #fffdfef0; box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.25); transform: translateY(-2px); }
+        .style-badge { position: absolute; top: 0; right: 0; background: #ec4899; color: white; padding: 0.25rem 1rem; border-bottom-left-radius: 1rem; font-size: 0.7rem; font-weight: bold; opacity: 0; transform: translateY(-10px); transition: all 0.3s; }
+        .style-card.selected .style-badge { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="text-slate-800">
 
     <div class="app-container">
-        <!-- HEADER APP -->
+        <!-- HEADER -->
         <header class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-50">
             <div class="flex items-center gap-2">
                 <div class="flex gap-1 mr-1">
@@ -63,7 +59,6 @@
                     stylio<span class="text-slate-800">.id</span>
                 </h1>
             </div>
-            
             <button id="btn-header-login" onclick="triggerDirectLogin()" class="text-sm font-bold text-slate-600 bg-slate-100 px-4 py-1.5 rounded-full active:bg-slate-200 transition">Masuk</button>
             <div id="user-wallet" class="hidden items-center gap-3">
                 <div class="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5 cursor-pointer" onclick="showView('view-pricing')">
@@ -73,38 +68,38 @@
             </div>
         </header>
 
-        <!-- AREA UTAMA -->
         <main id="main-content" class="flex-grow flex flex-col justify-between">
             
             <div class="flex-grow">
-                <!-- VIEW 1: DATA INPUT (WIZARD BERTINGKAT) -->
+                <!-- VIEW 1: DATA INPUT WIZARD -->
                 <div id="view-input" class="view-section px-5 py-6" style="display: block;">
                     <div class="mb-6">
                         <h2 class="text-2xl font-bold mb-1">Audit Gayamu ✨</h2>
-                        <p class="text-sm text-slate-500">Dapatkan analisis proporsi tubuh dan wajah level elit secara instan.</p>
+                        <p class="text-sm text-slate-500">Dapatkan analisis AI presisi tinggi secara instan.</p>
                     </div>
 
                     <form id="audit-form" onsubmit="event.preventDefault(); triggerSubmitProcess();">
-                        
-                        <!-- STEP 1: UPLOAD FOTO -->
+                        <!-- STEP 1: UPLOAD FOTO (SIMPLE) -->
                         <div id="step-1" class="step-container active">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">1. Upload Foto Wajah/Badan</label>
-                            <div onclick="document.getElementById('file-upload').click()" id="upload-box" class="border-2 border-dashed border-pink-200 bg-pink-50/50 rounded-2xl p-6 text-center active:bg-pink-100 transition cursor-pointer mb-3">
-                                <div class="text-4xl mb-2">📸</div>
-                                <h3 class="font-semibold text-pink-700 text-sm">Tap untuk pilih foto</h3>
+                            
+                            <label class="block text-sm font-bold text-slate-700 mb-4">1. Unggah Foto Anda</label>
+
+                            <div onclick="document.getElementById('file-upload').click()" id="upload-box" class="border-2 border-dashed border-pink-200 bg-pink-50/50 rounded-2xl p-8 text-center active:bg-pink-100 transition cursor-pointer mb-5">
+                                <div class="text-5xl mb-3">📸</div>
+                                <h3 class="font-bold text-pink-700 text-base">Tap untuk pilih foto</h3>
                             </div>
                             <input type="file" id="file-upload" class="hidden" accept="image/*">
                             
-<!-- Panduan Foto Wajah Terlihat Jelas -->
-<div class="mb-6 bg-blue-50 border border-blue-100 p-3 rounded-xl flex items-start gap-2.5">
-    <span class="text-blue-500 text-sm mt-0.5">💡</span>
-    <p class="text-xs text-blue-800 leading-relaxed">
-        <strong class="font-bold">Tips Maksimal:</strong> Kirim foto <strong>Setengah Badan (Kepala hingga Dada/Pinggang)</strong> dengan wajah menghadap depan & terang. AI kami akan otomatis meracik foto Full-Body beserta sepatunya!
-    </p>
-</div>
-                            <button type="button" onclick="nextStep(2)" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform">
-                                Lanjut ➔
-                            </button>
+                            <!-- Dynamic Tips -->
+                            <div class="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3 shadow-sm">
+                                <span class="text-blue-500 text-lg mt-0.5">💡</span>
+                                <p id="photo-tips-text" class="text-xs text-blue-800 leading-relaxed font-medium">
+                                    <strong class="font-bold block mb-1">Tips Hasil Maksimal:</strong> 
+                                    Gunakan foto seluruh badan (atas sampai bawah) dan pastikan Anda sendirian di foto tersebut. AI tidak akan bisa membedah bentuk tubuh Anda jika tidak terlihat jelas.
+                                </p>
+                            </div>
+
+                            <button type="button" onclick="nextStep(2)" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98]">Lanjut ➔</button>
                         </div>
 
                         <!-- STEP 2: GENDER -->
@@ -115,10 +110,9 @@
                                 <button type="button" onclick="selectGender('Wanita')" id="btn-gender-Wanita" class="gender-btn border border-slate-200 bg-slate-50 py-4 rounded-xl text-sm font-bold text-slate-600">Wanita</button>
                             </div>
                             <input type="hidden" id="input-gender">
-                            
                             <div class="flex gap-3">
-                                <button type="button" onclick="prevStep(1)" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-xl active:bg-slate-200">Kembali</button>
-                                <button type="button" onclick="nextStep(3)" class="w-2/3 bg-slate-900 text-white font-bold py-4 rounded-xl active:scale-[0.98]">Lanjut ➔</button>
+                                <button type="button" onclick="prevStep(1)" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-xl">Kembali</button>
+                                <button type="button" onclick="nextStep(3)" class="w-2/3 bg-slate-900 text-white font-bold py-4 rounded-xl">Lanjut ➔</button>
                             </div>
                         </div>
 
@@ -129,48 +123,38 @@
                                 <input type="number" id="input-tb" placeholder="Contoh: 165" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                                 <span class="absolute right-4 top-4 text-xs font-bold text-slate-400">cm</span>
                             </div>
-
                             <div class="flex gap-3">
-                                <button type="button" onclick="prevStep(2)" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-xl active:bg-slate-200">Kembali</button>
-                                <button type="button" onclick="nextStep(4)" class="w-2/3 bg-slate-900 text-white font-bold py-4 rounded-xl active:scale-[0.98]">Lanjut ➔</button>
+                                <button type="button" onclick="prevStep(2)" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-xl">Kembali</button>
+                                <button type="button" onclick="nextStep(4)" class="w-2/3 bg-slate-900 text-white font-bold py-4 rounded-xl">Lanjut ➔</button>
                             </div>
                         </div>
 
-                        <!-- STEP 4: BERAT BADAN & VIBE (LANGSUNG PROSES ANALISIS) -->
+                        <!-- STEP 4: BERAT BADAN & VIBE -->
                         <div id="step-4" class="step-container">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">4. Berat Badan & Target Vibe</label>
-                            
+                            <label class="block text-sm font-bold text-slate-700 mb-2">4. Berat Badan & Target Acara</label>
                             <div class="relative mb-4">
                                 <input type="number" id="input-bb" placeholder="Contoh: 55" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                                 <span class="absolute right-4 top-4 text-xs font-bold text-slate-400">kg</span>
                             </div>
-
-                            <!-- Pill Buttons Vibe -->
                             <div class="mb-6">
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Pilih Vibe Cepat (Atau Ketik Manual)</label>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Pilih Acara / Vibe</label>
                                 <div class="flex flex-wrap gap-2 mb-3">
-                                    <button type="button" onclick="selectVibePill(this, 'Profesional Elegan')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">💼 Profesional</button>
-                                    <button type="button" onclick="selectVibePill(this, 'Casual Streetwear')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">👟 Streetwear</button>
-                                    <button type="button" onclick="selectVibePill(this, 'Old Money Aesthetic')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">🥂 Old Money</button>
-                                    <button type="button" onclick="selectVibePill(this, 'Date Night Romantis')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">🌹 Date Night</button>
+                                    <button type="button" onclick="selectVibePill(this, 'Ngopi santai')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">☕ Ngopi Santai</button>
+                                    <button type="button" onclick="selectVibePill(this, 'Meeting kerja profesional')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">💼 Meeting</button>
+                                    <button type="button" onclick="selectVibePill(this, 'Date night romantis')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">🌹 Date Night</button>
+                                    <button type="button" onclick="selectVibePill(this, 'Nongkrong streetwear')" class="vibe-pill text-xs font-bold px-3.5 py-2 rounded-full">🛹 Streetwear</button>
                                 </div>
-                                <textarea id="input-style" rows="2" placeholder="Atau ketik bebas di sini..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium resize-none"></textarea>
+                                <textarea id="input-style" rows="2" placeholder="Atau ketik acara spesifik..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium resize-none" required></textarea>
                             </div>
-
-                            <!-- Tombol Eksekusi Utama -->
                             <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
-                                <span>Proses Analisis (Gratis) 🔍</span>
+                                <span>Audit & Racik Gaya (Gratis) 🔍</span>
                             </button>
-
-                            <!-- Micro-Trust Elements -->
                             <div class="flex justify-center items-center gap-4 mt-4 text-[11px] font-bold text-slate-400">
                                 <span class="flex items-center gap-1">🔒 Aman & Privasi Terjaga</span>
-                                <span class="flex items-center gap-1">⚡ Hasil Cepat (±30 dtk)</span>
+                                <span class="flex items-center gap-1">⚡ Analisis Real 2 Agen AI</span>
                             </div>
-
                             <button type="button" onclick="prevStep(3)" class="w-full mt-4 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl active:bg-slate-200">Kembali</button>
                         </div>
-
                     </form>
                 </div>
 
@@ -178,132 +162,173 @@
                 <div id="view-login" class="view-section is-flex-view flex-col items-center justify-center min-h-[70vh] px-5 py-10" style="display: none;">
                     <div class="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner border border-pink-100">🔒</div>
                     <h2 class="text-2xl font-bold text-center mb-2">Simpan Laporanmu!</h2>
-                    <p class="text-sm text-slate-500 text-center mb-8 px-2">Masuk ke <strong>stylio.id</strong> untuk melihat hasil analisis Pro Stylist senilai jutaan rupiah ini.</p>
+                    <p class="text-sm text-slate-500 text-center mb-8 px-2">Masuk ke <strong>stylio.id</strong> untuk menyimpan hasil analisis 2 Agen AI Stylist Profesional.</p>
                     <button onclick="handleGoogleLogin()" class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl shadow-sm active:bg-slate-50 flex justify-center items-center gap-3">
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
                         Lanjutkan dengan Google
                     </button>
                 </div>
 
-                <!-- VIEW 3: LOADING DENGAN PSIKOLOGI TEKS DINAMIS -->
+                <!-- VIEW 3: LOADING -->
                 <div id="view-loading" class="view-section is-flex-view flex-col items-center justify-center min-h-[70vh] text-center px-5" style="display: none;">
                     <div class="loader-ring mb-6"></div>
-                    <h2 id="loading-title" class="text-xl font-bold mb-2">Memproses...</h2>
-                    <p id="loading-desc" class="text-sm text-slate-500 transition-opacity duration-300">Mohon tunggu sebentar.</p>
+                    <h2 id="loading-title" class="text-xl font-bold mb-2">Agen AI Sedang Bekerja 🧠</h2>
+                    <p id="loading-desc" class="text-sm text-pink-600 font-medium transition-opacity duration-300">Menilai proporsi tubuh & wajah...</p>
                 </div>
 
-                <!-- VIEW 4: PERSONAL STYLE REPORT DEEP DIVE -->
-                <div id="view-report" class="view-section px-4 py-6 bg-slate-50 min-h-screen relative pb-32" style="display: none;">
+                <!-- VIEW 4: PREMIUM REPORT -->
+                <div id="view-report" class="view-section px-4 py-6 bg-[#f8fafc] min-h-screen relative pb-32" style="display: none;">
                     
                     <div class="text-center mb-6">
-                        <span class="bg-pink-100 text-pink-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Premium Insight</span>
-                        <h2 class="text-2xl font-extrabold mt-3 text-slate-800">Master Blueprint Gayamu</h2>
+                        <span class="bg-gradient-to-r from-pink-500 to-violet-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">Verified by 2 AI Agents</span>
+                        <h2 class="text-3xl font-extrabold mt-3 text-slate-800 tracking-tight">Master Blueprint</h2>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">100% dianalisa khusus untuk profil fisik Anda.</p>
                     </div>
 
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-5">
-                        <h3 class="font-bold text-slate-700 text-sm mb-4 border-b border-slate-100 pb-2">📐 Arsitektur Tubuh & Wajah</h3>
-                        <div class="space-y-4">
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase">Analisis Wajah</p><p id="rep-face" class="text-sm font-medium text-slate-800 leading-relaxed">-</p></div>
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase">Kibbe Body Type</p><p id="rep-body" class="text-sm font-medium text-slate-800 leading-relaxed">-</p></div>
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase">Kitchener Essence (Aura Inti)</p><p id="rep-essence" class="text-sm font-bold text-pink-600">-</p></div>
+                    <!-- UNIVERSAL DISCLAIMER BOX -->
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mb-5 flex gap-3 shadow-sm">
+                        <span class="text-xl">💡</span>
+                        <div>
+                            <strong class="font-extrabold uppercase text-amber-900 block mb-1 text-[11px]">Tujuan Visualisasi</strong>
+                            <p class="text-[11px] font-medium text-amber-900 leading-relaxed">
+                                Blueprint ini dirancang untuk memvisualisasikan <b>gaya pakaian lengkap dan paduan warna terbaik</b> untuk Anda. Wajah dan fisik AI hanya sebagai model referensi gaya dan mungkin tidak akan 100% mirip dengan identitas asli Anda.
+                            </p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-5 rounded-2xl shadow-md mb-5 text-white">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold text-slate-200 text-sm">🎨 Color Season</h3>
-                            <span id="rep-season" class="text-xs font-bold bg-white/20 px-2 py-1 rounded">-</span>
-                        </div>
-                        <div class="mb-4"><p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Primer</p><div id="rep-colors-primary" class="flex gap-2"></div></div>
-                        <div><p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Aksen</p><div id="rep-colors-accent" class="flex gap-2"></div></div>
-                    </div>
-
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-5">
-                        <h3 class="font-bold text-slate-700 text-sm mb-3">🪄 Trik Ilusi Optik</h3>
-                        <ul id="rep-tricks" class="text-xs text-slate-600 space-y-2 list-disc pl-4 mb-4"></ul>
-                        <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
-                            <div><h4 class="font-bold text-emerald-600 text-[10px] uppercase mb-2">✅ Do's</h4><ul id="rep-dos" class="text-[10px] text-slate-600 space-y-1 list-disc pl-3"></ul></div>
-                            <div><h4 class="font-bold text-rose-600 text-[10px] uppercase mb-2">❌ Don'ts</h4><ul id="rep-donts" class="text-[10px] text-slate-600 space-y-1 list-disc pl-3"></ul></div>
+                    <!-- 1. GRAFIK RADAR -->
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-5 flex flex-col items-center">
+                        <h3 class="font-bold text-slate-800 text-sm w-full mb-2">🧬 DNA Gaya (Style Metrics)</h3>
+                        <div class="w-full max-w-[280px] aspect-square relative">
+                            <canvas id="styleRadarChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="mb-8">
-                        <h3 class="text-lg font-extrabold text-slate-800 mb-1">Rakit Outfit AI-mu</h3>
-                        <p class="text-xs text-slate-500 mb-4">Pilih 1 item dari setiap kategori yang dikurasi khusus untuk proporsimu.</p>
+                    <!-- 2. ANALISIS KULIT & PROPORSI -->
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-5">
+                        <h3 class="font-bold text-slate-800 text-sm mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">✨ Analisis Fisik & Skin Tone</h3>
+                        <div class="space-y-5">
+                            <div>
+                                <p class="text-[10px] text-pink-500 font-bold uppercase mb-1">Diagnosis Skin Tone</p>
+                                <p id="rep-skin-title" class="text-base font-extrabold text-slate-800 mb-1">-</p>
+                                <p id="rep-skin-desc" class="text-xs font-medium text-slate-500 leading-relaxed">-</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Body Architecture</p>
+                                    <p id="rep-body" class="text-xs font-bold text-slate-800 leading-tight">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Kitchener Essence</p>
+                                    <p id="rep-essence" class="text-xs font-bold text-slate-800 leading-tight">-</p>
+                                </div>
+                            </div>
+                            
+                            <!-- DOPPELGANGER CELEBRITY -->
+                            <div class="mt-2 pt-4 border-t border-slate-100">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Celebrity Doppelgänger 🎭</p>
+                                <p id="rep-doppelganger" class="text-xs font-bold text-slate-800 leading-tight">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GAMIFICATION: GLOW-UP SCORE -->
+                    <div class="bg-gradient-to-r from-violet-600 to-indigo-900 p-5 rounded-3xl shadow-lg shadow-indigo-500/20 mb-5 text-white relative overflow-hidden flex items-center justify-between">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                        <div>
+                            <p class="text-[10px] text-indigo-200 font-extrabold uppercase tracking-wider mb-1">Skor Potensi Glow-Up 🚀</p>
+                            <div class="flex items-baseline gap-2">
+                                <span id="rep-score-current" class="text-2xl font-bold text-indigo-300 line-through">45</span>
+                                <span class="text-sm text-indigo-200">➔</span>
+                                <span id="rep-score-potential" class="text-4xl font-extrabold text-white">95</span>
+                                <span class="text-xs text-indigo-200 font-medium">/100</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl mb-1">📈</div>
+                        </div>
+                    </div>
+
+                    <!-- SECRET STYLING HACKS -->
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-5">
+                        <h3 class="font-bold text-slate-800 text-sm mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">🪄 Secret Styling Hacks</h3>
                         
-                        <!-- Kategori List -->
+                        <!-- Optical Illusions -->
                         <div class="mb-5">
-                            <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
-                                <span class="flex items-center gap-2">👕 Atasan <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
-                                <span id="status-tops" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
-                            </h4>
-                            <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-tops"></div>
+                            <p class="text-[10px] text-pink-500 font-bold uppercase mb-2">Trik Ilusi Optik</p>
+                            <ul id="rep-illusions" class="text-[11px] text-slate-600 font-medium space-y-2 list-disc pl-4">
+                                <!-- Diinjeksi JS -->
+                            </ul>
                         </div>
-                        <div class="mb-5">
-                            <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
-                                <span class="flex items-center gap-2">👖 Bawahan <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
-                                <span id="status-bottoms" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
-                            </h4>
-                            <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-bottoms"></div>
+
+                        <!-- Do's and Don'ts -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
+                                <p class="text-[10px] text-red-600 font-extrabold uppercase mb-2 flex items-center gap-1"><span>🛑</span> Kryptonite (Hindari)</p>
+                                <ul id="rep-kryptonite" class="text-[11px] text-red-800 font-medium space-y-1.5 pl-3 list-disc"></ul>
+                            </div>
+                            <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+                                <p class="text-[10px] text-emerald-600 font-extrabold uppercase mb-2 flex items-center gap-1"><span>⚡</span> Superpower (Pakai)</p>
+                                <ul id="rep-superpower" class="text-[11px] text-emerald-800 font-medium space-y-1.5 pl-3 list-disc"></ul>
+                            </div>
                         </div>
-                        <div class="mb-5">
-                            <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
-                                <span class="flex items-center gap-2">👟 Sepatu <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
-                                <span id="status-shoes" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
-                            </h4>
-                            <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-shoes"></div>
+                    </div>
+
+                    <!-- 3. COLOR PALETTE EVENT SPECIFIC -->
+                    <div class="bg-slate-900 p-6 rounded-3xl shadow-lg mb-6 text-white relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                        <h3 class="font-bold text-slate-100 text-sm mb-1">🎨 Palet Warna Acara</h3>
+                        <p id="rep-color-event" class="text-[11px] text-slate-400 font-medium mb-4 leading-relaxed">-</p>
+                        
+                        <div class="mb-4">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Dominan</p>
+                            <div id="rep-colors-primary" class="flex gap-2"></div>
                         </div>
-                        <div class="mb-5">
-                            <h4 class="font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
-                                <span class="flex items-center gap-2">🕶️ Aksesoris <span class="text-[9px] font-normal text-pink-500 animate-pulse">(Geser 👉)</span></span> 
-                                <span id="status-accessories" class="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">Pilih 1</span>
-                            </h4>
-                            <div class="flex gap-3 overflow-x-auto pb-2 snap-x no-scrollbar pr-5" id="list-accessories"></div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Aksen</p>
+                            <div id="rep-colors-accent" class="flex gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 4. STYLE REFERENCES -->
+                    <div class="mb-8">
+                        <div class="mb-5 px-1 bg-pink-50 border border-pink-100 rounded-xl p-4 text-center">
+                            <h3 class="text-sm font-extrabold text-slate-800 mb-1" id="event-context-title">Rekomendasi Gaya</h3>
+                            <p class="text-[11px] text-slate-500 font-medium">Pilih 1 referensi gaya yang kami racik khusus agar Anda bersinar di acara ini.</p>
+                        </div>
+                        
+                        <div id="list-style-references" class="space-y-4">
+                            <!-- Injected by JS -->
                         </div>
                     </div>
 
                     <!-- CTA Paywall -->
                     <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] p-4 bg-white/90 backdrop-blur-md border-t border-slate-100 z-40">
-                        <button id="btn-generate" disabled onclick="openTokenModal()" class="w-full bg-slate-300 text-white font-bold py-4 rounded-xl shadow-none transition-all flex items-center justify-center gap-2">
-                            <span>Pilih Semua Item Dulu</span>
+                        <button id="btn-generate" disabled onclick="openTokenModal()" class="w-full bg-slate-300 text-slate-500 font-bold py-4 rounded-xl shadow-none transition-all flex items-center justify-center gap-2">
+                            <span>Pilih 1 Gaya Master Dulu</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- VIEW 5: FOTO JADI & HASIL PREMIUM -->
+                <!-- VIEW 5: HASIL -->
                 <div id="view-result" class="view-section px-5 py-6 bg-slate-900 text-white min-h-screen" style="display: none;">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-pink-400">Stylio Premium</h2>
-                    </div>
+                    <h2 class="text-xl font-bold text-pink-400 mb-6">Stylio Premium</h2>
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/10">
                         <img id="final-ai-image" src="" class="w-full object-cover aspect-[3/4] bg-slate-800">
                     </div>
-                    
-                    <!-- TOMBOL DOWNLOAD & SHARE -->
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <button onclick="downloadImage()" class="flex items-center justify-center gap-2 bg-white text-slate-900 font-bold py-3.5 rounded-xl active:bg-slate-200 transition">
-                            ⬇️ Simpan
-                        </button>
-                        <button onclick="shareToIG()" class="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white font-bold py-3.5 rounded-xl active:opacity-80 transition">
-                            📸 Share IG
-                        </button>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button onclick="downloadImage()" class="flex items-center justify-center gap-2 bg-white text-slate-900 font-bold py-3.5 rounded-xl">⬇️ Simpan</button>
+                        <button onclick="shareToIG()" class="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white font-bold py-3.5 rounded-xl">📸 Share IG</button>
                     </div>
-
-                    <div class="bg-white/10 p-4 rounded-xl flex gap-3 text-sm text-slate-200 mb-6 border border-white/10">
-                        <span class="text-xl">💎</span><p>Outfit ini diracik khusus berdasarkan proporsi dan palet warnamu.</p>
-                    </div>
-
-                    <button onclick="resetApp()" class="w-full border-2 border-slate-700 text-slate-300 font-bold py-4 rounded-xl active:bg-slate-800 transition flex items-center justify-center gap-2">
-                        🔄 Upload Foto Lain
-                    </button>
+                    <button onclick="resetApp()" class="w-full border-2 border-slate-700 text-slate-300 font-bold py-4 rounded-xl flex items-center justify-center gap-2">🔄 Rakit Gaya Lain</button>
                 </div>
 
-                <!-- VIEW 6: PAYWALL / TOPUP MIDTRANS -->
+                <!-- VIEW 6: PRICING -->
                 <div id="view-pricing" class="view-section px-5 py-8 bg-slate-50 min-h-screen" style="display: none;">
                     <div class="text-center mb-6 mt-6">
                         <div class="text-5xl mb-4">💳</div>
                         <h2 class="text-2xl font-bold mb-2">Top Up Token</h2>
-                        <p class="text-sm text-slate-500">Pilih paket yang sesuai untuk terus mencoba berbagai gaya AI Pro Stylist.</p>
+                        <p class="text-sm text-slate-500">Pilih paket untuk mengakses AI Image Generator.</p>
                     </div>
                     
                     <div class="space-y-3 mb-6">
@@ -330,31 +355,34 @@
                         </button>
                     </div>
 
-                    <button onclick="goBack()" class="w-full text-sm font-bold text-slate-500 py-3 bg-slate-200 rounded-xl active:bg-slate-300">Batal / Kembali</button>
+                    <button onclick="goBack()" class="w-full text-sm font-bold text-slate-500 py-3 bg-slate-200 rounded-xl">Batal / Kembali</button>
                 </div>
-
             </div>
 
-            <!-- SPOT IKLAN BANNER (AD REVENUE) -->
             <div class="w-full bg-slate-100 border-t border-slate-200 py-3 px-4 flex flex-col items-center mt-6">
                 <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Advertisement</span>
-                <div class="w-full max-w-[320px] h-[50px] bg-white border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">
-                    Banner Iklan AdSense (320x50)
-                </div>
+                <div class="w-full max-w-[320px] h-[50px] bg-white border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">Banner Iklan AdSense</div>
             </div>
-
         </main>
     </div>
 
-    <!-- POPUP MODAL -->
+    <!-- MODAL TOKEN -->
     <div id="modal-token" class="modal-overlay">
         <div class="modal-content text-center">
             <div class="w-12 h-12 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-xl mx-auto mb-4">💎</div>
-            <h3 class="text-lg font-bold text-slate-800 mb-2">Generate Foto Premium?</h3>
-            <p class="text-sm text-slate-500 mb-6">Memotong <strong>1 Token</strong>. Sisa token kamu: <strong id="modal-sisa-token" class="text-slate-700">0</strong>.</p>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Jahit Visualisasi Gaya?</h3>
+            
+            <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl mb-4 text-left">
+                <p class="text-[10px] text-amber-900 leading-relaxed">
+                    <strong class="block mb-1 text-[11px]">⚠️ Disclaimer Visual</strong>
+                    Fokus utama AI adalah memvisualisasikan <b>kecocokan outfit, gaya, dan paduan warna</b> terbaik berdasarkan profil Anda. Bentuk wajah dan detail fisik AI kemungkinan tidak akan 100% mirip dengan wajah asli Anda.
+                </p>
+            </div>
+
+            <p class="text-sm text-slate-500 mb-6">Memotong <strong>1 Token</strong>. Sisa token: <strong id="modal-sisa-token" class="text-slate-700">0</strong>.</p>
             <div class="flex gap-3">
-                <button onclick="closeModal('modal-token')" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl active:bg-slate-200">Batal</button>
-                <button onclick="executeGenerate()" class="flex-1 bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 rounded-xl shadow-lg active:opacity-90">Ya, Generate</button>
+                <button onclick="closeModal('modal-token')" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl">Batal</button>
+                <button onclick="executeGenerate()" class="flex-1 bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 rounded-xl shadow-lg">Ya, Generate</button>
             </div>
         </div>
     </div>
@@ -366,28 +394,23 @@
 
         let state = {
             photoUploaded: false, photoFile: null, tokens: 0, isLoggedIn: false, userId: null, userEmail: null, userPhotoUrl: null, analysisData: null,
-            selectedWardrobe: { tops: null, bottoms: null, shoes: null, accessories: null }
+            selectedStylePrompt: null
         };
 
-        // Variabel global untuk menyimpan interval polling AI
-        let pollingInterval;
-
+        // View Navigasi
         let viewHistory = []; let currentHistoryIdx = -1;
         function showView(viewId, isHistoryNavigation = false) {
             document.querySelectorAll('.view-section').forEach(el => { el.style.display = 'none'; el.classList.remove('active'); });
             const target = document.getElementById(viewId);
             if (target.classList.contains('is-flex-view')) { target.style.display = 'flex'; } else { target.style.display = 'block'; }
             target.classList.add('active'); window.scrollTo(0, 0);
-            if (!isHistoryNavigation) {
-                viewHistory = viewHistory.slice(0, currentHistoryIdx + 1);
-                if (viewHistory[viewHistory.length - 1] !== viewId) { viewHistory.push(viewId); currentHistoryIdx++; }
-            }
+            if (!isHistoryNavigation) { viewHistory = viewHistory.slice(0, currentHistoryIdx + 1); if (viewHistory[viewHistory.length - 1] !== viewId) { viewHistory.push(viewId); currentHistoryIdx++; } }
             updateNavButtons();
         }
         function goBack() { if (currentHistoryIdx > 0) { currentHistoryIdx--; showView(viewHistory[currentHistoryIdx], true); } }
         function goForward() { if (currentHistoryIdx < viewHistory.length - 1) { currentHistoryIdx++; showView(viewHistory[currentHistoryIdx], true); } }
-        function updateNavButtons() {
-            document.getElementById('btn-back').className = currentHistoryIdx > 0 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden";
+        function updateNavButtons() { 
+            document.getElementById('btn-back').className = currentHistoryIdx > 0 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden"; 
             document.getElementById('btn-forward').className = currentHistoryIdx < viewHistory.length - 1 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden";
         }
         function resetApp() { viewHistory = []; currentHistoryIdx = -1; showView('view-input'); }
@@ -396,10 +419,7 @@
             showView('view-input');
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
-                state.isLoggedIn = true; 
-                state.userId = session.user.id;
-                state.userEmail = session.user.email;
-                
+                state.isLoggedIn = true; state.userId = session.user.id; state.userEmail = session.user.email;
                 const { data: profile } = await supabaseClient.from('profiles').select('tokens').eq('id', state.userId).single();
                 state.tokens = profile ? profile.tokens : 0; updateHeader();
 
@@ -409,280 +429,298 @@
                     document.getElementById('input-tb').value = localStorage.getItem('tempTb') || '';
                     document.getElementById('input-bb').value = localStorage.getItem('tempBb') || '';
                     document.getElementById('input-style').value = localStorage.getItem('tempStyle') || '';
+                    
                     if(document.getElementById('input-gender').value) selectGender(document.getElementById('input-gender').value);
-                    if (localStorage.getItem('tempPhoto')) {
-                        state.photoUploaded = true;
-                        document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`;
-                    }
+
+                    if (localStorage.getItem('tempPhoto')) { state.photoUploaded = true; document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`; }
                     startAnalysis(); 
                 }
             }
         };
 
-        // --- Navigasi Wizard Langkah per Langkah ---
+        // Logic UI Input (Validasi Cerdas & Simpel)
         function nextStep(step) {
-            if(step === 2 && !state.photoUploaded) { alert("Silakan upload foto terlebih dahulu!"); return; }
-            if(step === 3 && !document.getElementById('input-gender').value) { alert("Pilih gender terlebih dahulu!"); return; }
-            if(step === 4 && !document.getElementById('input-tb').value) { alert("Masukkan tinggi badan!"); return; }
-            
+            if(step === 2 && !state.photoUploaded) { alert("Tolong unggah foto Anda terlebih dahulu!"); return; }
+            if(step === 3 && !document.getElementById('input-gender').value) { alert("Pilih gender Anda!"); return; }
+            if(step === 4) {
+                const tb = parseInt(document.getElementById('input-tb').value);
+                if(!tb || tb < 50 || tb > 300) { 
+                    alert("⚠️ Tinggi badan tidak masuk akal. Mohon masukkan angka yang realistis (Contoh: 165)."); 
+                    return; 
+                }
+            }
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
             document.getElementById('step-' + step).classList.add('active');
         }
-        function prevStep(step) {
-            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-            document.getElementById('step-' + step).classList.add('active');
-        }
 
-        function selectGender(g) { 
-            document.getElementById('input-gender').value = g; 
-            document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected')); 
-            document.getElementById(`btn-gender-${g}`).classList.add('selected'); 
-        }
-
-        // --- Logika Pill Buttons Vibe ---
-        function selectVibePill(btn, vibeText) {
-            document.querySelectorAll('.vibe-pill').forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('input-style').value = vibeText;
-        }
-
-        async function handleGoogleLogin() { await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
-        async function handleLogout() { await supabaseClient.auth.signOut(); state.isLoggedIn = false; state.tokens = 0; updateHeader(); resetApp(); }
-        function updateHeader() {
-            if(state.isLoggedIn) { document.getElementById('btn-header-login').classList.add('hidden'); document.getElementById('user-wallet').classList.remove('hidden'); document.getElementById('user-wallet').classList.add('flex'); document.getElementById('token-count').innerText = state.tokens; } 
-            else { document.getElementById('btn-header-login').classList.remove('hidden'); document.getElementById('user-wallet').classList.add('hidden'); document.getElementById('user-wallet').classList.remove('flex'); }
-        }
-        function openModal(id) { document.getElementById(id).classList.add('show'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function prevStep(step) { document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active')); document.getElementById('step-' + step).classList.add('active'); }
+        function selectGender(g) { document.getElementById('input-gender').value = g; document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected')); document.getElementById(`btn-gender-${g}`).classList.add('selected'); }
+        function selectVibePill(btn, vibeText) { document.querySelectorAll('.vibe-pill').forEach(p => p.classList.remove('active')); btn.classList.add('active'); document.getElementById('input-style').value = vibeText; }
 
         document.getElementById('file-upload').addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
                 state.photoUploaded = true; state.photoFile = e.target.files[0];
                 const r = new FileReader(); r.onload = function(evt) { try { localStorage.setItem('tempPhoto', evt.target.result); } catch(err){} }; r.readAsDataURL(state.photoFile);
-                document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`;
+                document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap Diproses!</h3>`;
             }
         });
 
         function triggerSubmitProcess() {
-            const g = document.getElementById('input-gender').value, tb = document.getElementById('input-tb').value, bb = document.getElementById('input-bb').value, st = document.getElementById('input-style').value;
-            if(!state.photoUploaded || !g || !tb || !bb) { alert("Mohon lengkapi semua data!"); return; }
+            const g = document.getElementById('input-gender').value;
+            const tb = parseInt(document.getElementById('input-tb').value);
+            const bb = parseInt(document.getElementById('input-bb').value);
+            const st = document.getElementById('input-style').value;
+            
+            // Validasi Terakhir
+            if(!state.photoUploaded || !g || !tb || !bb || !st) { alert("Lengkapi semua data dan target acara!"); return; }
+            if(bb < 20 || bb > 300) { alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (Contoh: 55)."); return; }
+
             localStorage.setItem('tempGender', g); localStorage.setItem('tempTb', tb); localStorage.setItem('tempBb', bb); localStorage.setItem('tempStyle', st);
+            
             if(!state.isLoggedIn) { localStorage.setItem('wantsToGenerate', 'true'); showView('view-login'); } else { startAnalysis(); }
         }
-        function triggerDirectLogin() { localStorage.removeItem('wantsToGenerate'); handleGoogleLogin(); }
-
-        // --- Psikologi Layar Loading Dinamis ---
-        const loadingMessages = [
-            "Menganalisis proporsi tubuh dan postur...",
-            "Mengekstraksi skin tone & color season...",
-            "Mencari referensi gaya paling cocok...",
-            "Menjahit pakaian digital dengan AI...",
-            "Sentuhan akhir rendering (Finishing)..."
-        ];
+        
+        function triggerDirectLogin() { localStorage.removeItem('wantsToGenerate'); supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
+        async function handleLogout() { await supabaseClient.auth.signOut(); state.isLoggedIn = false; state.tokens = 0; updateHeader(); resetApp(); }
+        function updateHeader() { document.getElementById('btn-header-login').classList.toggle('hidden', state.isLoggedIn); document.getElementById('user-wallet').classList.toggle('hidden', !state.isLoggedIn); document.getElementById('user-wallet').classList.toggle('flex', state.isLoggedIn); document.getElementById('token-count').innerText = state.tokens; }
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
         async function startAnalysis() {
             showView('view-loading');
-            document.getElementById('loading-title').innerText = "AI Menganalisis 🧠";
-            
-            // Jalankan rotasi teks psikologi loading
-            let msgIdx = 0;
-            const descEl = document.getElementById('loading-desc');
-            descEl.innerText = loadingMessages[msgIdx];
-            const loadInterval = setInterval(() => {
-                descEl.style.opacity = 0;
-                setTimeout(() => {
-                    msgIdx = (msgIdx + 1) % loadingMessages.length;
-                    descEl.innerText = loadingMessages[msgIdx];
-                    descEl.style.opacity = 1;
-                }, 300);
+            let msgIdx = 0; 
+            const msgs = [
+                "Agen 1: Membedah Proporsi Tubuh & Wajah...", 
+                "Agen 2: Mengaudit Kesesuaian Fisik...", 
+                "Agen 1: Mengkalibrasi Palet Warna...", 
+                "Mensintesis 4 Master Style (Finalisasi)..."
+            ];
+            const descEl = document.getElementById('loading-desc'); 
+            descEl.innerText = msgs[0];
+            const loadInterval = setInterval(() => { 
+                descEl.style.opacity = 0; 
+                setTimeout(() => { 
+                    msgIdx = (msgIdx + 1) % msgs.length; 
+                    descEl.innerText = msgs[msgIdx]; 
+                    descEl.style.opacity = 1; 
+                }, 300); 
             }, 3500);
-            
+
             try {
                 let file = state.photoFile;
-                if (!file) { const b64 = localStorage.getItem('tempPhoto'); if (!b64) throw new Error("Foto hilang."); file = await (await fetch(b64)).blob(); }
+                if (!file) { 
+                    const b64 = localStorage.getItem('tempPhoto'); 
+                    if (!b64) throw new Error("Foto hilang, mohon upload ulang."); 
+                    file = await (await fetch(b64)).blob(); 
+                }
                 const fileName = `${state.userId}-${Date.now()}.jpg`;
                 const { error: upErr } = await supabaseClient.storage.from('user_photos').upload(fileName, file);
                 if (upErr) throw upErr;
+                
                 state.userPhotoUrl = supabaseClient.storage.from('user_photos').getPublicUrl(fileName).data.publicUrl;
 
                 const { data: res, error: err } = await supabaseClient.functions.invoke('analyze-profile', {
-                    body: { userPhotoUrl: state.userPhotoUrl, gender: localStorage.getItem('tempGender'), height: localStorage.getItem('tempTb'), weight: localStorage.getItem('tempBb'), stylePreference: localStorage.getItem('tempStyle') }
+                    body: { 
+                        userPhotoUrl: state.userPhotoUrl, 
+                        gender: localStorage.getItem('tempGender'), 
+                        height: localStorage.getItem('tempTb'), 
+                        weight: localStorage.getItem('tempBb'), 
+                        stylePreference: localStorage.getItem('tempStyle')
+                    }
                 });
-                if (err) throw err; if (!res.success) throw new Error(res.error);
+
+                if (err) throw err; 
+                if (!res.success) throw new Error(res.error);
 
                 clearInterval(loadInterval);
+                
                 state.analysisData = res.data;
-                renderReportUI(); localStorage.removeItem('tempPhoto'); showView('view-report');
+                renderReportUI(); 
+                localStorage.removeItem('tempPhoto'); 
+                showView('view-report');
+
             } catch (e) { 
-                clearInterval(loadInterval);
-                alert("Error: " + e.message); goBack(); 
+                clearInterval(loadInterval); 
+                alert("Error Analisis AI: " + e.message); 
+                goBack(); 
             }
         }
 
         function renderReportUI() {
             const d = state.analysisData;
-            document.getElementById('rep-face').innerText = d.deepAnalysis?.faceGeometry || '-';
-            document.getElementById('rep-body').innerText = d.deepAnalysis?.bodyArchitecture || '-';
-            document.getElementById('rep-essence').innerText = d.deepAnalysis?.kitchenerEssence || '-';
-            document.getElementById('rep-season').innerText = d.deepAnalysis?.colorSeason || '-';
+            const userEvent = localStorage.getItem('tempStyle');
 
-            const pC = document.getElementById('rep-colors-primary'); pC.innerHTML = '';
-            d.colorPalette?.primary?.forEach(hex => pC.innerHTML += `<div class="color-swatch" style="background-color: ${hex};"></div>`);
-            const aC = document.getElementById('rep-colors-accent'); aC.innerHTML = '';
-            d.colorPalette?.accent?.forEach(hex => aC.innerHTML += `<div class="color-swatch" style="background-color: ${hex}; border-color: #334155;"></div>`);
+            document.getElementById('event-context-title').innerText = `Karena Anda ingin ${userEvent}, berikut rekomendasinya:`;
 
-            const tC = document.getElementById('rep-tricks'); tC.innerHTML = '';
-            d.deepAnalysis?.opticalTricks?.forEach(t => tC.innerHTML += `<li>${t}</li>`);
+            // Data Mapping Basic
+            document.getElementById('rep-skin-title').innerText = d.deepAnalysis.skinTone;
+            document.getElementById('rep-skin-desc').innerText = d.deepAnalysis.skinToneDesc;
+            document.getElementById('rep-body').innerText = d.deepAnalysis.bodyArchitecture;
+            document.getElementById('rep-essence').innerText = d.deepAnalysis.kitchenerEssence;
+            document.getElementById('rep-color-event').innerText = d.deepAnalysis.eventColorExplanation;
             
-            const dosC = document.getElementById('rep-dos'); dosC.innerHTML = ''; d.styleDetails?.dos?.forEach(d => dosC.innerHTML += `<li>${d}</li>`);
-            const dontsC = document.getElementById('rep-donts'); dontsC.innerHTML = ''; d.styleDetails?.donts?.forEach(d => dontsC.innerHTML += `<li>${d}</li>`);
+            const pC = document.getElementById('rep-colors-primary'); pC.innerHTML = '';
+            d.colorPalette.primary.forEach(hex => pC.innerHTML += `<div class="color-swatch" style="background-color: ${hex};"></div>`);
+            const aC = document.getElementById('rep-colors-accent'); aC.innerHTML = '';
+            d.colorPalette.accent.forEach(hex => aC.innerHTML += `<div class="color-swatch" style="background-color: ${hex}; border-color: #334155;"></div>`);
 
-            state.selectedWardrobe = { tops: null, bottoms: null, shoes: null, accessories: null };
+            // Radar Chart
+            const ctx = document.getElementById('styleRadarChart').getContext('2d');
+            if(window.myRadarChart) window.myRadarChart.destroy();
+            window.myRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: { labels: d.styleMetrics.labels, datasets: [{ label: 'Style DNA', data: d.styleMetrics.data, backgroundColor: 'rgba(236, 72, 153, 0.2)', borderColor: '#ec4899', pointBackgroundColor: '#be185d', borderWidth: 2 }] },
+                options: { scales: { r: { angleLines: { color: 'rgba(0,0,0,0.05)' }, grid: { color: 'rgba(0,0,0,0.05)' }, pointLabels: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+            });
 
-            renderOptions('tops', d.wardrobeOptions?.tops, '👕');
-            renderOptions('bottoms', d.wardrobeOptions?.bottoms, '👖');
-            renderOptions('shoes', d.wardrobeOptions?.shoes, '👟');
-            renderOptions('accessories', d.wardrobeOptions?.accessories, '🕶️');
-        }
-
-        function renderOptions(category, items, icon) {
-            const container = document.getElementById(`list-${category}`); container.innerHTML = '';
-            if(!items || items.length === 0) return;
-            items.forEach((item, idx) => {
-                let badgeHtml = idx === 0 ? '<div class="absolute -top-2 -left-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full z-10 shadow-sm border border-white">⭐ BEST</div>' : '';
-                container.innerHTML += `
-                    <div class="wardrobe-card mt-2" id="card-${category}-${idx}" onclick="selectItem('${category}', ${idx}, '${item.prompt.replace(/'/g, "\\'")}')">
-                        ${badgeHtml}
-                        <div class="text-2xl mb-2">${icon}</div>
-                        <p class="text-[11px] font-bold text-slate-700 leading-tight">${item.label}</p>
-                        <div class="wardrobe-badge">✓</div>
+            // Style References
+            state.selectedStylePrompt = null;
+            const listContainer = document.getElementById('list-style-references');
+            listContainer.innerHTML = '';
+            
+            d.styleReferences.forEach((style, idx) => {
+                let badge = idx === 0 ? '<div class="style-badge">Top Pick 🌟</div>' : '';
+                let itemsHtml = style.items.map(item => `<li class="flex gap-2"><span class="text-pink-500">✓</span> ${item}</li>`).join('');
+                listContainer.innerHTML += `
+                    <div class="style-card p-5" id="style-card-${idx}" onclick="selectMasterStyle(${idx}, '${style.prompt.replace(/'/g, "\\'")}')">
+                        ${badge}
+                        <h4 class="font-extrabold text-slate-800 text-lg mb-1">${style.title}</h4>
+                        <p class="text-xs text-slate-500 mb-4 font-medium">${style.desc}</p>
+                        <ul class="text-[11px] text-slate-700 space-y-1.5 font-medium border-t border-slate-100 pt-3">${itemsHtml}</ul>
                     </div>`;
             });
-            if(items.length > 0) setTimeout(() => selectItem(category, 0, items[0].prompt.replace(/'/g, "\\'")), 100);
+
+            // --- INJEKSI DATA FREEMIUM BARU ---
+            const da = d.deepAnalysis;
+
+            // Doppelganger
+            document.getElementById('rep-doppelganger').innerText = da.celebrityDoppelganger || "Menunggu update sistem AI...";
+
+            // Gamification Score
+            document.getElementById('rep-score-current').innerText = da.glowUpScore?.current || "45";
+            document.getElementById('rep-score-potential').innerText = da.glowUpScore?.potential || "95";
+
+            // Optical Illusions
+            const illusionsContainer = document.getElementById('rep-illusions');
+            illusionsContainer.innerHTML = '';
+            const illusions = da.opticalIllusionHacks || ["Gunakan aturan sepertiga (Rule of Thirds) saat memasukkan baju.", "Samakan warna sepatu dengan celana untuk ilusi kaki panjang."];
+            illusions.forEach(hack => {
+                illusionsContainer.innerHTML += `<li>${hack}</li>`;
+            });
+
+            // Kryptonite & Superpower
+            const kryptoniteContainer = document.getElementById('rep-kryptonite');
+            kryptoniteContainer.innerHTML = '';
+            const kryptonites = da.styleKryptonite || ["Pakaian oversized tebal", "Motif horizontal besar"];
+            kryptonites.forEach(item => kryptoniteContainer.innerHTML += `<li>${item}</li>`);
+
+            const superpowerContainer = document.getElementById('rep-superpower');
+            superpowerContainer.innerHTML = '';
+            const superpowers = da.styleSuperpower || ["Jaket berstruktur pas badan", "Celana potongan lurus"];
+            superpowers.forEach(item => superpowerContainer.innerHTML += `<li>${item}</li>`);
         }
 
-        function selectItem(category, idx, promptStr) {
-            state.selectedWardrobe[category] = promptStr;
-            const container = document.getElementById(`list-${category}`);
-            container.querySelectorAll('.wardrobe-card').forEach(c => c.classList.remove('selected'));
-            const selectedCard = document.getElementById(`card-${category}-${idx}`);
-            if(selectedCard) selectedCard.classList.add('selected');
+        function selectMasterStyle(idx, promptStr) {
+            state.selectedStylePrompt = promptStr;
+            const container = document.getElementById('list-style-references');
+            container.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`style-card-${idx}`).classList.add('selected');
             
-            const status = document.getElementById(`status-${category}`);
-            status.innerText = "Terpilih"; status.className = "text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded";
-            checkAllSelections();
-        }
-
-        function checkAllSelections() {
-            const s = state.selectedWardrobe;
             const btn = document.getElementById('btn-generate');
-            if(s.tops && s.bottoms && s.shoes && s.accessories) {
-                btn.disabled = false;
-                btn.className = "w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2";
-                btn.innerHTML = `<span>🪄 Jahit Foto Outfit Ini</span><span class="bg-white/20 px-2 py-0.5 rounded text-xs">Rp 10.000</span>`;
-            }
+            btn.disabled = false;
+            btn.className = "w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-extrabold py-4 rounded-xl shadow-xl shadow-pink-500/30 active:scale-[0.98] transition-transform flex items-center justify-center gap-2";
+            btn.innerHTML = `<span>✨ Jahit Visualisasi Gaya Ini</span><span class="bg-white/20 px-2 py-0.5 rounded text-[10px]">Rp 10k</span>`;
         }
 
         function openTokenModal() { if(state.tokens <= 0) showView('view-pricing'); else { document.getElementById('modal-sisa-token').innerText = state.tokens; openModal('modal-token'); } }
 
+        let pollingInterval;
+
         // ==========================================
-        // UPDATE: ASYNCHRONOUS GENERATION & POLLING
+        // ARSITEKTUR 1-LANGKAH (FLUX PULID - FULL BODY)
         // ==========================================
         async function executeGenerate() {
-            closeModal('modal-token'); 
+            closeModal('modal-token');
             showView('view-loading');
             document.getElementById('loading-title').innerText = "Mengarahkan Gaya & Menjahit Foto 📸";
-            document.getElementById('loading-desc').innerText = "AI sedang menyesuaikan pose dan latar belakang (Bisa memakan waktu 30-60 detik)...";
+            document.getElementById('loading-desc').innerText = "AI sedang menyesuaikan pose dan pakaian (Bisa memakan waktu 30-60 detik)...";
 
             try {
-                const s = state.selectedWardrobe;
-                const combinedEnglishPrompt = `${s.tops}, ${s.bottoms}, ${s.accessories}, and ${s.shoes} on feet`;
-                const photoDir = state.analysisData.photographyDirection || {};
-                const bodyArchitecture = state.analysisData.deepAnalysis?.bodyArchitecture || "average proportions";
+                const photoDir = state.analysisData?.photographyDirection || {};
 
-                // 1. Submit Job ke Supabase Edge Function (Bukan tunggu hasil, tapi antre)
                 const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', {
-                    body: { 
-                        userId: state.userId, 
-                        userPhotoUrl: state.userPhotoUrl, 
+                    body: {
+                        userPhotoUrl: state.userPhotoUrl,
                         gender: localStorage.getItem('tempGender'),
-                        height: localStorage.getItem('tempTb'),
-                        weight: localStorage.getItem('tempBb'),
-                        bodyArchitecture: bodyArchitecture, 
-                        englishPrompt: combinedEnglishPrompt, 
-                        pose: photoDir.pose || 'standing confidently, full body shot', 
-                        background: photoDir.background || 'minimalist studio background'
+                        englishPrompt: state.selectedStylePrompt,
+                        pose: photoDir.pose,
+                        background: photoDir.background
                     }
                 });
 
-                if (aiError) throw aiError; 
+                if (aiError) throw aiError;
                 if (!aiData.success) throw new Error(aiData.error);
 
-                // 2. Mulai Polling (Cek status tiap 3 detik menggunakan Request ID)
                 pollGenerationStatus(aiData.requestId);
-                
-            } catch (error) { 
-                alert("Kesalahan Memulai Render: " + error.message); 
-                goBack(); 
+
+            } catch (error) {
+                alert("Kesalahan Memulai Render: " + error.message);
+                goBack();
             }
         }
 
-async function pollGenerationStatus(requestId) {
-    let attempts = 0;
-    const maxAttempts = 30; // Maksimal 90 detik
+        async function pollGenerationStatus(requestId) {
+            let attempts = 0;
+            const maxAttempts = 30; // Timeout 90 detik
 
-    pollingInterval = setInterval(async () => {
-        attempts++;
-        document.getElementById('loading-desc').innerText = `Menjahit pixel... (Proses ${Math.round((attempts/maxAttempts)*100)}%)`;
+            pollingInterval = setInterval(async () => {
+                attempts++;
+                document.getElementById('loading-desc').innerText = `Menjahit pixel... (Proses ${Math.round((attempts/maxAttempts)*100)}%)`;
 
-        try {
-            const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', {
-                body: { requestId: requestId }
-            });
+                try {
+                    const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', {
+                        body: { requestId: requestId }
+                    });
 
-            if (error) throw error;
-            
-            // 🔥 INI PENYELAMATNYA: Menampilkan error ASLI dari backend
-            if (data && data.success === false) {
-                clearInterval(pollingInterval);
-                throw new Error(data.error); 
-            }
+                    if (error) throw error;
+                    if (data && data.success === false) throw new Error(data.error);
 
-            if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
-                clearInterval(pollingInterval);
-                state.tokens -= 1; 
-                updateHeader();
-                document.getElementById('final-ai-image').src = data.imageUrl;
-                showView('view-result');
-            } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
-                clearInterval(pollingInterval);
-                throw new Error("Proses dibatalkan atau gagal di server AI.");
-            }
-            
-            if (attempts >= maxAttempts) {
-                clearInterval(pollingInterval);
-                throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi.");
-            }
+                    if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
+                        clearInterval(pollingInterval);
+                        
+                        // PEMOTONGAN TOKEN DI FRONTEND
+                        state.tokens -= 1;
+                        updateHeader();
+                        
+                        // SINKRONISASI KE DATABASE (TIDAK LAGI HANYA DI LAYAR)
+                        if (state.userId) {
+                            await supabaseClient.from('profiles')
+                                .update({ tokens: state.tokens })
+                                .eq('id', state.userId);
+                        }
 
-        } catch (err) {
-            clearInterval(pollingInterval);
-            // Alert sekarang akan menunjukan AKAR MASALAHNYA
-            alert("GAGAL RENDER: " + err.message); 
-            goBack();
+                        document.getElementById('final-ai-image').src = data.imageUrl;
+                        showView('view-result');
+                    } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
+                        clearInterval(pollingInterval);
+                        throw new Error("Proses digagalkan oleh server AI.");
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollingInterval);
+                        throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi.");
+                    }
+
+                } catch (err) {
+                    clearInterval(pollingInterval);
+                    alert("GAGAL RENDER: " + err.message);
+                    goBack();
+                }
+            }, 3000);
         }
-    }, 3000);
-}
-
-        function downloadImage() { const imgUrl = document.getElementById('final-ai-image').src; if(imgUrl) window.open(imgUrl, '_blank'); }
-
-        async function shareToIG() {
-            const imgUrl = document.getElementById('final-ai-image').src; if(!imgUrl) return;
-            try {
-                const response = await fetch(imgUrl); const blob = await response.blob(); const file = new File([blob], 'stylio-outfit.jpg', { type: blob.type });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ title: 'My AI Stylist Outfit', text: 'Cek outfit rekomendasi AI Stylist untukku dari stylio.id! ✨', files: [file] }); } 
-                else { alert("Browser Anda tidak mendukung share gambar langsung. Silakan Download fotonya terlebih dahulu lalu post ke IG!"); }
-            } catch (error) { console.error('Error sharing:', error); }
-        }
+        
+        function downloadImage() { const url = document.getElementById('final-ai-image').src; if(url) window.open(url, '_blank'); }
+        async function shareToIG() { alert("Simpan gambar terlebih dahulu lalu post ke IG!"); }
 
         // ==========================================
         // LOGIKA PEMBAYARAN MIDTRANS
