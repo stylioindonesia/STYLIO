@@ -64,13 +64,15 @@
             
             <button id="btn-header-login" onclick="triggerDirectLogin()" class="text-sm font-bold text-slate-600 bg-slate-100 px-4 py-1.5 rounded-full active:bg-slate-200 transition">Masuk</button>
             
-            <!-- WALLET & BUY TOKEN -->
+            <!-- WALLET & MENU -->
             <div id="user-wallet" class="hidden items-center gap-2">
+                <!-- Tombol My Stylio (Gallery) -->
+                <button onclick="openGallery()" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 active:bg-slate-200 transition flex items-center gap-1">🖼️ Stylio</button>
+
                 <div class="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-700">🪙 <span id="token-count">0</span></span>
                 </div>
-                <!-- Tombol Tambah Token -->
-                <button onclick="showView('view-pricing')" class="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-[11px] font-bold active:bg-pink-200 transition">+ Tambah</button>
+                <button onclick="showView('view-pricing')" class="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-[11px] font-bold active:bg-pink-200 transition shrink-0">+ Tambah</button>
                 <button onclick="handleLogout()" class="text-[10px] text-slate-400 font-bold underline ml-1">Keluar</button>
             </div>
         </header>
@@ -88,9 +90,8 @@
                     <form id="audit-form" onsubmit="event.preventDefault(); triggerSubmitProcess();">
                         <!-- STEP 1: UPLOAD FOTO -->
                         <div id="step-1" class="step-container active">
-                            
                             <label class="block text-sm font-bold text-slate-700 mb-4">1. Unggah Foto Anda</label>
-
+                            
                             <div onclick="document.getElementById('file-upload').click()" id="upload-box" class="border-2 border-dashed border-pink-200 bg-pink-50/50 rounded-2xl p-8 text-center active:bg-pink-100 transition cursor-pointer mb-5">
                                 <div class="text-5xl mb-3">📸</div>
                                 <h3 class="font-bold text-pink-700 text-base">Tap untuk pilih foto</h3>
@@ -102,7 +103,7 @@
                                 <span class="text-blue-500 text-lg mt-0.5">💡</span>
                                 <p id="photo-tips-text" class="text-xs text-blue-800 leading-relaxed font-medium">
                                     <strong class="font-bold block mb-1">Tips Hasil Maksimal:</strong> 
-                                    Gunakan foto seluruh badan (atas sampai bawah) dan pastikan Anda sendirian di foto tersebut. AI tidak akan bisa membedah bentuk tubuh Anda jika terpotong.
+                                    Gunakan foto seluruh badan (atas sampai bawah) dan pastikan Anda sendirian di foto tersebut. AI tidak akan bisa membedah bentuk tubuh Anda secara akurat jika foto terpotong.
                                 </p>
                             </div>
 
@@ -127,7 +128,6 @@
                         <div id="step-3" class="step-container">
                             <label class="block text-sm font-bold text-slate-700 mb-2">3. Tinggi Badan</label>
                             <div class="relative mb-6">
-                                <!-- HARDCODE: Hanya bisa input 3 digit, maksimal angka 250 -->
                                 <input type="number" id="input-tb" oninput="if(this.value.length > 3) this.value = this.value.slice(0,3); if(this.value > 250) this.value = 250;" placeholder="Contoh: 165" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                                 <span class="absolute right-4 top-4 text-xs font-bold text-slate-400">cm</span>
                             </div>
@@ -137,11 +137,10 @@
                             </div>
                         </div>
 
-                        <!-- STEP 4: BERAT BADAN (WITH HARDCODE LIMITS) -->
+                        <!-- STEP 4: BERAT BADAN & VIBE (WITH HARDCODE LIMITS) -->
                         <div id="step-4" class="step-container">
                             <label class="block text-sm font-bold text-slate-700 mb-2">4. Berat Badan & Target Acara</label>
                             <div class="relative mb-4">
-                                <!-- HARDCODE: Hanya bisa input 3 digit, maksimal angka 250 -->
                                 <input type="number" id="input-bb" oninput="if(this.value.length > 3) this.value = this.value.slice(0,3); if(this.value > 250) this.value = 250;" placeholder="Contoh: 55" class="w-full pl-4 pr-10 py-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                                 <span class="absolute right-4 top-4 text-xs font-bold text-slate-400">kg</span>
                             </div>
@@ -167,7 +166,7 @@
                     </form>
                 </div>
 
-                <!-- VIEW 2: LOGIN WALL -->
+                <!-- VIEW LOGIN WALL -->
                 <div id="view-login" class="view-section is-flex-view flex-col items-center justify-center min-h-[70vh] px-5 py-10" style="display: none;">
                     <div class="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner border border-pink-100">🔒</div>
                     <h2 class="text-2xl font-bold text-center mb-2">Simpan Laporanmu!</h2>
@@ -178,16 +177,15 @@
                     </button>
                 </div>
 
-                <!-- VIEW 3: LOADING -->
+                <!-- VIEW LOADING -->
                 <div id="view-loading" class="view-section is-flex-view flex-col items-center justify-center min-h-[70vh] text-center px-5" style="display: none;">
                     <div class="loader-ring mb-6"></div>
                     <h2 id="loading-title" class="text-xl font-bold mb-2">Agen AI Sedang Bekerja 🧠</h2>
                     <p id="loading-desc" class="text-sm text-pink-600 font-medium transition-opacity duration-300">Menilai proporsi tubuh & wajah...</p>
                 </div>
 
-                <!-- VIEW 4: PREMIUM REPORT -->
+                <!-- VIEW REPORT (MASTER BLUEPRINT) -->
                 <div id="view-report" class="view-section px-4 py-6 bg-[#f8fafc] min-h-screen relative pb-32" style="display: none;">
-                    
                     <div class="text-center mb-6">
                         <span class="bg-gradient-to-r from-pink-500 to-violet-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">Verified by 2 AI Agents</span>
                         <h2 class="text-3xl font-extrabold mt-3 text-slate-800 tracking-tight">Master Blueprint</h2>
@@ -232,7 +230,6 @@
                                     <p id="rep-essence" class="text-xs font-bold text-slate-800 leading-tight">-</p>
                                 </div>
                             </div>
-                            
                             <!-- DOPPELGANGER CELEBRITY -->
                             <div class="mt-2 pt-4 border-t border-slate-100">
                                 <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Celebrity Doppelgänger 🎭</p>
@@ -261,16 +258,10 @@
                     <!-- SECRET STYLING HACKS -->
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-5">
                         <h3 class="font-bold text-slate-800 text-sm mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">🪄 Secret Styling Hacks</h3>
-                        
-                        <!-- Optical Illusions -->
                         <div class="mb-5">
                             <p class="text-[10px] text-pink-500 font-bold uppercase mb-2">Trik Ilusi Optik</p>
-                            <ul id="rep-illusions" class="text-[11px] text-slate-600 font-medium space-y-2 list-disc pl-4">
-                                <!-- Diinjeksi JS -->
-                            </ul>
+                            <ul id="rep-illusions" class="text-[11px] text-slate-600 font-medium space-y-2 list-disc pl-4"></ul>
                         </div>
-
-                        <!-- Do's and Don'ts -->
                         <div class="grid grid-cols-2 gap-3">
                             <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
                                 <p class="text-[10px] text-red-600 font-extrabold uppercase mb-2 flex items-center gap-1"><span>🛑</span> Kryptonite (Hindari)</p>
@@ -288,7 +279,6 @@
                         <div class="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
                         <h3 class="font-bold text-slate-100 text-sm mb-1">🎨 Palet Warna Acara</h3>
                         <p id="rep-color-event" class="text-[11px] text-slate-400 font-medium mb-4 leading-relaxed">-</p>
-                        
                         <div class="mb-4">
                             <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Warna Dominan</p>
                             <div id="rep-colors-primary" class="flex gap-2"></div>
@@ -305,10 +295,7 @@
                             <h3 class="text-sm font-extrabold text-slate-800 mb-1" id="event-context-title">Rekomendasi Gaya</h3>
                             <p class="text-[11px] text-slate-500 font-medium">Pilih 1 referensi gaya yang kami racik khusus agar Anda bersinar di acara ini.</p>
                         </div>
-                        
-                        <div id="list-style-references" class="space-y-4">
-                            <!-- Injected by JS -->
-                        </div>
+                        <div id="list-style-references" class="space-y-4"></div>
                     </div>
 
                     <!-- CTA Paywall -->
@@ -319,7 +306,7 @@
                     </div>
                 </div>
 
-                <!-- VIEW 5: HASIL (UPDATED) -->
+                <!-- VIEW RESULT (AI IMAGE) -->
                 <div id="view-result" class="view-section px-5 py-6 bg-slate-900 text-white min-h-screen" style="display: none;">
                     <h2 class="text-xl font-bold text-pink-400 mb-6">Stylio Premium</h2>
                     
@@ -345,7 +332,27 @@
                     </div>
                 </div>
 
-                <!-- VIEW 6: PRICING -->
+                <!-- VIEW MY STYLIO (GALLERY HISTORY) -->
+                <div id="view-gallery" class="view-section px-5 py-6 bg-[#f8fafc] min-h-screen" style="display: none;">
+                    <div class="flex items-center gap-3 mb-6">
+                        <button onclick="goBack()" class="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 active:bg-slate-100">◀</button>
+                        <h2 class="text-xl font-bold text-slate-800">My Stylio History</h2>
+                    </div>
+                    
+                    <!-- Grid Foto -->
+                    <div id="gallery-grid" class="grid grid-cols-2 gap-3">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <!-- State Kosong -->
+                    <div id="gallery-empty" class="hidden flex-col items-center justify-center py-24 text-center">
+                        <div class="text-5xl mb-4 opacity-50">📭</div>
+                        <h3 class="text-base font-extrabold text-slate-700 mb-1">Belum ada gaya visual</h3>
+                        <p class="text-xs text-slate-500 px-4">Mulai audit dan generate gaya pertama Anda untuk melihat riwayatnya di sini.</p>
+                    </div>
+                </div>
+
+                <!-- VIEW PRICING (TOP UP) -->
                 <div id="view-pricing" class="view-section px-5 py-8 bg-slate-50 min-h-screen" style="display: none;">
                     <div class="text-center mb-6 mt-6">
                         <div class="text-5xl mb-4">💳</div>
@@ -385,6 +392,12 @@
                 <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Advertisement</span>
                 <div class="w-full max-w-[320px] h-[50px] bg-white border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">Banner Iklan AdSense</div>
             </div>
+            <!-- LINK MENU LEGAL -->
+            <div class="text-center py-4">
+                <a href="legal.html" class="text-[11px] font-bold text-slate-400 hover:text-pink-600 underline transition">
+                    Syarat & Ketentuan & Kebijakan Privasi
+                </a>
+            </div>
         </main>
     </div>
 
@@ -397,7 +410,7 @@
             <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl mb-4 text-left">
                 <p class="text-[10px] text-amber-900 leading-relaxed">
                     <strong class="block mb-1 text-[11px]">⚠️ Disclaimer Visual</strong>
-                    Fokus utama AI adalah memvisualisasikan <b>kecocokan outfit, gaya, dan paduan warna</b> terbaik berdasarkan profil Anda. Bentuk wajah dan detail fisik AI kemungkinan tidak akan 100% mirip dengan wajah asli Anda.
+                    Fokus AI adalah memvisualisasikan <b>kecocokan outfit dan paduan warna</b> terbaik. Wajah dan fisik AI kemungkinan tidak akan 100% mirip dengan Anda.
                 </p>
             </div>
 
@@ -415,69 +428,107 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let state = {
-            photoUploaded: false, photoFile: null, tokens: 0, isLoggedIn: false, userId: null, userEmail: null, userPhotoUrl: null, analysisData: null,
+            photoUploaded: false, 
+            photoFile: null, 
+            tokens: 0, 
+            isLoggedIn: false, 
+            userId: null, 
+            userEmail: null, 
+            userPhotoUrl: null, 
+            analysisData: null,
             selectedStylePrompt: null
         };
 
-        // View Navigasi
-        let viewHistory = []; let currentHistoryIdx = -1;
+        let viewHistory = []; 
+        let currentHistoryIdx = -1;
+
+        // FUNGSI NAVIGASI VIEW
         function showView(viewId, isHistoryNavigation = false) {
-            document.querySelectorAll('.view-section').forEach(el => { el.style.display = 'none'; el.classList.remove('active'); });
+            document.querySelectorAll('.view-section').forEach(el => { 
+                el.style.display = 'none'; 
+                el.classList.remove('active'); 
+            });
+            
             const target = document.getElementById(viewId);
-            if (target.classList.contains('is-flex-view')) { target.style.display = 'flex'; } else { target.style.display = 'block'; }
-            target.classList.add('active'); window.scrollTo(0, 0);
-            if (!isHistoryNavigation) { viewHistory = viewHistory.slice(0, currentHistoryIdx + 1); if (viewHistory[viewHistory.length - 1] !== viewId) { viewHistory.push(viewId); currentHistoryIdx++; } }
+            if (target.classList.contains('is-flex-view')) { 
+                target.style.display = 'flex'; 
+            } else { 
+                target.style.display = 'block'; 
+            }
             
-            // Sembunyikan tombol back jika di menu utama
-            document.getElementById('btn-back').className = currentHistoryIdx > 0 ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden"; 
+            target.classList.add('active'); 
+            window.scrollTo(0, 0);
+            
+            if (!isHistoryNavigation) { 
+                viewHistory = viewHistory.slice(0, currentHistoryIdx + 1); 
+                if (viewHistory[viewHistory.length - 1] !== viewId) { 
+                    viewHistory.push(viewId); 
+                    currentHistoryIdx++; 
+                } 
+            }
+            
+            // Atur tombol kembali (Jangan muncul di beranda utama)
+            document.getElementById('btn-back').className = (currentHistoryIdx > 0 && viewId !== 'view-input') ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden"; 
         }
-        function goBack() { if (currentHistoryIdx > 0) { currentHistoryIdx--; showView(viewHistory[currentHistoryIdx], true); } }
+
+        function goBack() { 
+            if (currentHistoryIdx > 0) { 
+                currentHistoryIdx--; 
+                showView(viewHistory[currentHistoryIdx], true); 
+            } 
+        }
         
-        // FUNGSI HARD RESET 100%
+        // FUNGSI HARD RESET KEMBALI KE HOME
         function resetApp() { 
-            // 1. Reset array history & view
-            viewHistory = []; currentHistoryIdx = -1; 
+            viewHistory = []; 
+            currentHistoryIdx = -1; 
             
-            // 2. Kosongkan Form Input
+            // Kosongkan form input
             document.getElementById('input-gender').value = '';
             document.getElementById('input-tb').value = '';
             document.getElementById('input-bb').value = '';
             document.getElementById('input-style').value = '';
             document.getElementById('file-upload').value = '';
             
-            // 3. Reset Tampilan UI Pilihan (Buttons & Box)
+            // Reset UI Pilihan
             document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.vibe-pill').forEach(b => b.classList.remove('active'));
             document.getElementById('upload-box').innerHTML = `<div class="text-5xl mb-3">📸</div><h3 class="font-bold text-pink-700 text-base">Tap untuk pilih foto</h3>`;
             
-            // 4. Hapus State & Local Storage Cache
-            state.photoUploaded = false;
-            state.photoFile = null;
-            state.analysisData = null;
+            // Reset State & Cache
+            state.photoUploaded = false; 
+            state.photoFile = null; 
+            state.analysisData = null; 
             state.selectedStylePrompt = null;
             
-            localStorage.removeItem('tempPhoto');
-            localStorage.removeItem('tempGender');
-            localStorage.removeItem('tempTb');
-            localStorage.removeItem('tempBb');
+            localStorage.removeItem('tempPhoto'); 
+            localStorage.removeItem('tempGender'); 
+            localStorage.removeItem('tempTb'); 
+            localStorage.removeItem('tempBb'); 
             localStorage.removeItem('tempStyle');
             
-            // 5. Kembali ke Kotak Step 1
+            // Kembalikan ke Step 1
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
             document.getElementById('step-1').classList.add('active');
 
-            // 6. Pindah ke Halaman Utama
+            // Buka halaman depan
             showView('view-input'); 
         }
 
+        // INIT SAAT HALAMAN DIBUKA
         window.onload = async () => {
             showView('view-input');
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
-                state.isLoggedIn = true; state.userId = session.user.id; state.userEmail = session.user.email;
+                state.isLoggedIn = true; 
+                state.userId = session.user.id; 
+                state.userEmail = session.user.email;
+                
                 const { data: profile } = await supabaseClient.from('profiles').select('tokens').eq('id', state.userId).single();
-                state.tokens = profile ? profile.tokens : 0; updateHeader();
+                state.tokens = profile ? profile.tokens : 0; 
+                updateHeader();
 
+                // Lanjutkan proses jika sebelumnya login tertunda
                 if (localStorage.getItem('wantsToGenerate') === 'true') {
                     localStorage.removeItem('wantsToGenerate'); 
                     document.getElementById('input-gender').value = localStorage.getItem('tempGender') || '';
@@ -485,22 +536,34 @@
                     document.getElementById('input-bb').value = localStorage.getItem('tempBb') || '';
                     document.getElementById('input-style').value = localStorage.getItem('tempStyle') || '';
                     
-                    if(document.getElementById('input-gender').value) selectGender(document.getElementById('input-gender').value);
+                    if(document.getElementById('input-gender').value) {
+                        selectGender(document.getElementById('input-gender').value);
+                    }
 
-                    if (localStorage.getItem('tempPhoto')) { state.photoUploaded = true; document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`; }
+                    if (localStorage.getItem('tempPhoto')) { 
+                        state.photoUploaded = true; 
+                        document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`; 
+                    }
                     startAnalysis(); 
                 }
             }
         };
 
-        // Logic UI Input
+        // NAVIGASI STEP WIZARD
         function nextStep(step) {
-            if(step === 2 && !state.photoUploaded) { alert("Tolong unggah foto Anda terlebih dahulu!"); return; }
-            if(step === 3 && !document.getElementById('input-gender').value) { alert("Pilih gender Anda!"); return; }
+            if(step === 2 && !state.photoUploaded) { 
+                alert("Tolong unggah foto Anda terlebih dahulu!"); 
+                return; 
+            }
+            if(step === 3 && !document.getElementById('input-gender').value) { 
+                alert("Pilih gender Anda!"); 
+                return; 
+            }
             if(step === 4) {
                 const tb = parseInt(document.getElementById('input-tb').value);
-                if(!tb || tb < 50) { 
-                    alert("⚠️ Tinggi badan tidak valid. Mohon masukkan angka yang realistis."); 
+                // Validasi hardcode JS tinggi badan
+                if(!tb || tb < 50 || tb > 250) { 
+                    alert("⚠️ Tinggi badan tidak valid. Mohon masukkan angka yang realistis (50 - 250 cm)."); 
                     return; 
                 }
             }
@@ -508,41 +571,146 @@
             document.getElementById('step-' + step).classList.add('active');
         }
 
-        function prevStep(step) { document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active')); document.getElementById('step-' + step).classList.add('active'); }
-        function selectGender(g) { document.getElementById('input-gender').value = g; document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected')); document.getElementById(`btn-gender-${g}`).classList.add('selected'); }
-        function selectVibePill(btn, vibeText) { document.querySelectorAll('.vibe-pill').forEach(p => p.classList.remove('active')); btn.classList.add('active'); document.getElementById('input-style').value = vibeText; }
+        function prevStep(step) { 
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active')); 
+            document.getElementById('step-' + step).classList.add('active'); 
+        }
 
+        function selectGender(g) { 
+            document.getElementById('input-gender').value = g; 
+            document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected')); 
+            document.getElementById(`btn-gender-${g}`).classList.add('selected'); 
+        }
+
+        function selectVibePill(btn, vibeText) { 
+            document.querySelectorAll('.vibe-pill').forEach(p => p.classList.remove('active')); 
+            btn.classList.add('active'); 
+            document.getElementById('input-style').value = vibeText; 
+        }
+
+        // HANDLE UPLOAD FOTO
         document.getElementById('file-upload').addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
-                state.photoUploaded = true; state.photoFile = e.target.files[0];
-                const r = new FileReader(); r.onload = function(evt) { try { localStorage.setItem('tempPhoto', evt.target.result); } catch(err){} }; r.readAsDataURL(state.photoFile);
+                state.photoUploaded = true; 
+                state.photoFile = e.target.files[0];
+                
+                const r = new FileReader(); 
+                r.onload = function(evt) { 
+                    try { localStorage.setItem('tempPhoto', evt.target.result); } catch(err){} 
+                }; 
+                r.readAsDataURL(state.photoFile);
+                
                 document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap Diproses!</h3>`;
             }
         });
 
+        // HANDLE SUBMIT DATA
         function triggerSubmitProcess() {
             const g = document.getElementById('input-gender').value;
             const tb = parseInt(document.getElementById('input-tb').value);
             const bb = parseInt(document.getElementById('input-bb').value);
             const st = document.getElementById('input-style').value;
             
-            // Validasi Terakhir
-            if(!state.photoUploaded || !g || !tb || !bb || !st) { alert("Lengkapi semua data dan target acara!"); return; }
-            if(bb < 20) { alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang valid."); return; }
-
-            localStorage.setItem('tempGender', g); localStorage.setItem('tempTb', tb); localStorage.setItem('tempBb', bb); localStorage.setItem('tempStyle', st);
+            if(!state.photoUploaded || !g || !tb || !bb || !st) { 
+                alert("Lengkapi semua data dan target acara!"); 
+                return; 
+            }
             
-            if(!state.isLoggedIn) { localStorage.setItem('wantsToGenerate', 'true'); showView('view-login'); } else { startAnalysis(); }
+            // Validasi hardcode JS berat badan
+            if(bb < 20 || bb > 250) { 
+                alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (20 - 250 kg)."); 
+                return; 
+            }
+
+            localStorage.setItem('tempGender', g); 
+            localStorage.setItem('tempTb', tb); 
+            localStorage.setItem('tempBb', bb); 
+            localStorage.setItem('tempStyle', st);
+            
+            if(!state.isLoggedIn) { 
+                localStorage.setItem('wantsToGenerate', 'true'); 
+                showView('view-login'); 
+            } else { 
+                startAnalysis(); 
+            }
         }
         
-        function triggerDirectLogin() { localStorage.removeItem('wantsToGenerate'); supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
-        async function handleLogout() { await supabaseClient.auth.signOut(); state.isLoggedIn = false; state.tokens = 0; updateHeader(); resetApp(); }
-        function updateHeader() { document.getElementById('btn-header-login').classList.toggle('hidden', state.isLoggedIn); document.getElementById('user-wallet').classList.toggle('hidden', !state.isLoggedIn); document.getElementById('user-wallet').classList.toggle('flex', state.isLoggedIn); document.getElementById('token-count').innerText = state.tokens; }
-        function openModal(id) { document.getElementById(id).classList.add('show'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        // FUNGSI AUTH & USER STATE
+        function triggerDirectLogin() { 
+            localStorage.removeItem('wantsToGenerate'); 
+            supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); 
+        }
 
+        async function handleLogout() { 
+            await supabaseClient.auth.signOut(); 
+            state.isLoggedIn = false; 
+            state.tokens = 0; 
+            updateHeader(); 
+            resetApp(); 
+        }
+
+        function updateHeader() { 
+            document.getElementById('btn-header-login').classList.toggle('hidden', state.isLoggedIn); 
+            document.getElementById('user-wallet').classList.toggle('hidden', !state.isLoggedIn); 
+            document.getElementById('user-wallet').classList.toggle('flex', state.isLoggedIn); 
+            document.getElementById('token-count').innerText = state.tokens; 
+        }
+
+        function openModal(id) { 
+            document.getElementById(id).classList.add('show'); 
+        }
+        
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('show'); 
+        }
+
+        // FUNGSI LOAD MY STYLIO (GALERI HISTORY)
+        async function openGallery() {
+            if (!state.isLoggedIn) { 
+                alert("Silakan masuk (login) untuk melihat riwayat gaya Anda."); 
+                triggerDirectLogin(); 
+                return; 
+            }
+            
+            showView('view-gallery');
+            const grid = document.getElementById('gallery-grid');
+            const emptyState = document.getElementById('gallery-empty');
+            
+            grid.innerHTML = '<div class="col-span-2 text-center text-sm text-slate-500 py-10">Memuat riwayat gaya...</div>';
+            emptyState.classList.add('hidden');
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_gallery')
+                    .select('image_url')
+                    .eq('user_id', state.userId)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+
+                grid.innerHTML = '';
+                if (!data || data.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                } else {
+                    data.forEach(item => {
+                        grid.innerHTML += `
+                            <div class="rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-white relative aspect-[3/4] cursor-pointer" onclick="window.open('${item.image_url}', '_blank')">
+                                <img src="${item.image_url}" class="w-full h-full object-cover" loading="lazy">
+                            </div>
+                        `;
+                    });
+                }
+            } catch (err) {
+                alert("Gagal memuat galeri. Pastikan Anda sudah membuat tabel 'user_gallery' di Supabase.");
+                goBack();
+            }
+        }
+
+        // FUNGSI ANALISIS AI
         async function startAnalysis() {
             showView('view-loading');
+            
             let msgIdx = 0; 
             const msgs = [
                 "Agen 1: Membedah Proporsi Tubuh & Wajah...", 
@@ -550,8 +718,10 @@
                 "Agen 1: Mengkalibrasi Palet Warna...", 
                 "Mensintesis 4 Master Style (Finalisasi)..."
             ];
+            
             const descEl = document.getElementById('loading-desc'); 
             descEl.innerText = msgs[0];
+            
             const loadInterval = setInterval(() => { 
                 descEl.style.opacity = 0; 
                 setTimeout(() => { 
@@ -568,32 +738,31 @@
                     if (!b64) throw new Error("Foto hilang, mohon upload ulang."); 
                     file = await (await fetch(b64)).blob(); 
                 }
+                
                 const fileName = `${state.userId}-${Date.now()}.jpg`;
                 const { error: upErr } = await supabaseClient.storage.from('user_photos').upload(fileName, file);
                 if (upErr) throw upErr;
                 
                 state.userPhotoUrl = supabaseClient.storage.from('user_photos').getPublicUrl(fileName).data.publicUrl;
-
-                const { data: res, error: err } = await supabaseClient.functions.invoke('analyze-profile', {
+                
+                const { data: res, error: err } = await supabaseClient.functions.invoke('analyze-profile', { 
                     body: { 
                         userPhotoUrl: state.userPhotoUrl, 
                         gender: localStorage.getItem('tempGender'), 
                         height: localStorage.getItem('tempTb'), 
                         weight: localStorage.getItem('tempBb'), 
-                        stylePreference: localStorage.getItem('tempStyle')
-                    }
+                        stylePreference: localStorage.getItem('tempStyle') 
+                    } 
                 });
-
+                
                 if (err) throw err; 
                 if (!res.success) throw new Error(res.error);
 
                 clearInterval(loadInterval);
-                
-                state.analysisData = res.data;
+                state.analysisData = res.data; 
                 renderReportUI(); 
                 localStorage.removeItem('tempPhoto'); 
                 showView('view-report');
-
             } catch (e) { 
                 clearInterval(loadInterval); 
                 alert("Error Analisis AI: " + e.message); 
@@ -601,102 +770,146 @@
             }
         }
 
+        // RENDER LAPORAN MASTER BLUEPRINT
         function renderReportUI() {
-            const d = state.analysisData;
+            const d = state.analysisData; 
             const userEvent = localStorage.getItem('tempStyle');
-
+            
             document.getElementById('event-context-title').innerText = `Karena Anda ingin ${userEvent}, berikut rekomendasinya:`;
 
-            // Data Mapping Basic
             document.getElementById('rep-skin-title').innerText = d.deepAnalysis.skinTone;
             document.getElementById('rep-skin-desc').innerText = d.deepAnalysis.skinToneDesc;
             document.getElementById('rep-body').innerText = d.deepAnalysis.bodyArchitecture;
             document.getElementById('rep-essence').innerText = d.deepAnalysis.kitchenerEssence;
             document.getElementById('rep-color-event').innerText = d.deepAnalysis.eventColorExplanation;
             
-            const pC = document.getElementById('rep-colors-primary'); pC.innerHTML = '';
-            d.colorPalette.primary.forEach(hex => pC.innerHTML += `<div class="color-swatch" style="background-color: ${hex};"></div>`);
-            const aC = document.getElementById('rep-colors-accent'); aC.innerHTML = '';
-            d.colorPalette.accent.forEach(hex => aC.innerHTML += `<div class="color-swatch" style="background-color: ${hex}; border-color: #334155;"></div>`);
-
-            // Radar Chart
-            const ctx = document.getElementById('styleRadarChart').getContext('2d');
-            if(window.myRadarChart) window.myRadarChart.destroy();
-            window.myRadarChart = new Chart(ctx, {
-                type: 'radar',
-                data: { labels: d.styleMetrics.labels, datasets: [{ label: 'Style DNA', data: d.styleMetrics.data, backgroundColor: 'rgba(236, 72, 153, 0.2)', borderColor: '#ec4899', pointBackgroundColor: '#be185d', borderWidth: 2 }] },
-                options: { scales: { r: { angleLines: { color: 'rgba(0,0,0,0.05)' }, grid: { color: 'rgba(0,0,0,0.05)' }, pointLabels: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+            const pC = document.getElementById('rep-colors-primary'); 
+            pC.innerHTML = ''; 
+            d.colorPalette.primary.forEach(hex => {
+                pC.innerHTML += `<div class="color-swatch" style="background-color: ${hex};"></div>`;
+            });
+            
+            const aC = document.getElementById('rep-colors-accent'); 
+            aC.innerHTML = ''; 
+            d.colorPalette.accent.forEach(hex => {
+                aC.innerHTML += `<div class="color-swatch" style="background-color: ${hex}; border-color: #334155;"></div>`;
             });
 
-            // Style References
-            state.selectedStylePrompt = null;
-            const listContainer = document.getElementById('list-style-references');
+            const ctx = document.getElementById('styleRadarChart').getContext('2d'); 
+            if(window.myRadarChart) window.myRadarChart.destroy();
+            
+            window.myRadarChart = new Chart(ctx, { 
+                type: 'radar', 
+                data: { 
+                    labels: d.styleMetrics.labels, 
+                    datasets: [{ 
+                        label: 'Style DNA', 
+                        data: d.styleMetrics.data, 
+                        backgroundColor: 'rgba(236, 72, 153, 0.2)', 
+                        borderColor: '#ec4899', 
+                        pointBackgroundColor: '#be185d', 
+                        borderWidth: 2 
+                    }] 
+                }, 
+                options: { 
+                    scales: { 
+                        r: { 
+                            angleLines: { color: 'rgba(0,0,0,0.05)' }, 
+                            grid: { color: 'rgba(0,0,0,0.05)' }, 
+                            pointLabels: { font: { size: 10, family: 'Plus Jakarta Sans' }, color: '#64748b' }, 
+                            ticks: { display: false } 
+                        } 
+                    }, 
+                    plugins: { legend: { display: false } } 
+                } 
+            });
+
+            state.selectedStylePrompt = null; 
+            const listContainer = document.getElementById('list-style-references'); 
             listContainer.innerHTML = '';
             
             d.styleReferences.forEach((style, idx) => {
-                let badge = idx === 0 ? '<div class="style-badge">Top Pick 🌟</div>' : '';
+                let badge = idx === 0 ? '<div class="style-badge">Top Pick 🌟</div>' : ''; 
                 let itemsHtml = style.items.map(item => `<li class="flex gap-2"><span class="text-pink-500">✓</span> ${item}</li>`).join('');
+                
                 listContainer.innerHTML += `
                     <div class="style-card p-5" id="style-card-${idx}" onclick="selectMasterStyle(${idx}, '${style.prompt.replace(/'/g, "\\'")}')">
                         ${badge}
                         <h4 class="font-extrabold text-slate-800 text-lg mb-1">${style.title}</h4>
                         <p class="text-xs text-slate-500 mb-4 font-medium">${style.desc}</p>
-                        <ul class="text-[11px] text-slate-700 space-y-1.5 font-medium border-t border-slate-100 pt-3">${itemsHtml}</ul>
-                    </div>`;
+                        <ul class="text-[11px] text-slate-700 space-y-1.5 font-medium border-t border-slate-100 pt-3">
+                            ${itemsHtml}
+                        </ul>
+                    </div>
+                `;
             });
 
-            // --- INJEKSI DATA FREEMIUM BARU ---
             const da = d.deepAnalysis;
             document.getElementById('rep-doppelganger').innerText = da.celebrityDoppelganger || "Menunggu update sistem AI...";
-            document.getElementById('rep-score-current').innerText = da.glowUpScore?.current || "45";
+            document.getElementById('rep-score-current').innerText = da.glowUpScore?.current || "45"; 
             document.getElementById('rep-score-potential').innerText = da.glowUpScore?.potential || "95";
 
-            const illusionsContainer = document.getElementById('rep-illusions');
+            const illusionsContainer = document.getElementById('rep-illusions'); 
             illusionsContainer.innerHTML = '';
             const illusions = da.opticalIllusionHacks || ["Gunakan aturan sepertiga (Rule of Thirds) saat memasukkan baju."];
-            illusions.forEach(hack => { illusionsContainer.innerHTML += `<li>${hack}</li>`; });
+            illusions.forEach(hack => { 
+                illusionsContainer.innerHTML += `<li>${hack}</li>`; 
+            });
 
-            const kryptoniteContainer = document.getElementById('rep-kryptonite');
+            const kryptoniteContainer = document.getElementById('rep-kryptonite'); 
             kryptoniteContainer.innerHTML = '';
             const kryptonites = da.styleKryptonite || ["Pakaian oversized tebal"];
-            kryptonites.forEach(item => kryptoniteContainer.innerHTML += `<li>${item}</li>`);
+            kryptonites.forEach(item => {
+                kryptoniteContainer.innerHTML += `<li>${item}</li>`;
+            });
 
-            const superpowerContainer = document.getElementById('rep-superpower');
+            const superpowerContainer = document.getElementById('rep-superpower'); 
             superpowerContainer.innerHTML = '';
             const superpowers = da.styleSuperpower || ["Jaket berstruktur pas badan"];
-            superpowers.forEach(item => superpowerContainer.innerHTML += `<li>${item}</li>`);
+            superpowers.forEach(item => {
+                superpowerContainer.innerHTML += `<li>${item}</li>`;
+            });
         }
 
         function selectMasterStyle(idx, promptStr) {
             state.selectedStylePrompt = promptStr;
             const container = document.getElementById('list-style-references');
+            
             container.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
             document.getElementById(`style-card-${idx}`).classList.add('selected');
             
-            const btn = document.getElementById('btn-generate');
+            const btn = document.getElementById('btn-generate'); 
             btn.disabled = false;
             btn.className = "w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-extrabold py-4 rounded-xl shadow-xl shadow-pink-500/30 active:scale-[0.98] transition-transform flex items-center justify-center gap-2";
             btn.innerHTML = `<span>✨ Jahit Visualisasi Gaya Ini</span><span class="bg-white/20 px-2 py-0.5 rounded text-[10px]">Rp 10k</span>`;
         }
 
-        function openTokenModal() { if(state.tokens <= 0) showView('view-pricing'); else { document.getElementById('modal-sisa-token').innerText = state.tokens; openModal('modal-token'); } }
+        function openTokenModal() { 
+            if(state.tokens <= 0) {
+                showView('view-pricing'); 
+            } else { 
+                document.getElementById('modal-sisa-token').innerText = state.tokens; 
+                openModal('modal-token'); 
+            } 
+        }
 
-        // FUNGSI RENDER PILIHAN GAYA LAIN DI LAYAR HASIL
+        // RENDER PILIHAN GAYA LAIN (UPSELL) DI LAYAR HASIL
         function renderOtherStyles() {
-            const container = document.getElementById('other-styles-container');
+            const container = document.getElementById('other-styles-container'); 
             container.innerHTML = '';
+            
             if(!state.analysisData || !state.analysisData.styleReferences) return;
 
             state.analysisData.styleReferences.forEach((style, idx) => {
                 if(style.prompt !== state.selectedStylePrompt) {
                     container.innerHTML += `
-                        <button onclick="selectAndGenerateOtherStyle(${idx}, '${style.prompt.replace(/'/g, "\\'")}')" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-left active:bg-slate-700 flex justify-between items-center transition">
+                        <button onclick="selectAndGenerateOtherStyle('${style.prompt.replace(/'/g, "\\'")}')" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-left active:bg-slate-700 flex justify-between items-center transition">
                             <div class="pr-3">
                                 <h4 class="font-bold text-slate-200 text-sm mb-1">${style.title}</h4>
                                 <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">${style.desc}</p>
                             </div>
                             <div class="bg-slate-700/80 border border-slate-600 px-3 py-1.5 rounded-lg text-[10px] font-bold text-pink-400 shrink-0 flex items-center gap-1 shadow-sm">
-                                <span>🪙 1</span>
+                                <span>🪙 1 Token</span>
                             </div>
                         </button>
                     `;
@@ -704,127 +917,136 @@
             });
         }
 
-        function selectAndGenerateOtherStyle(idx, promptStr) {
-            state.selectedStylePrompt = promptStr;
+        function selectAndGenerateOtherStyle(promptStr) {
+            state.selectedStylePrompt = promptStr; 
             openTokenModal();
         }
 
         let pollingInterval;
 
-        // ==========================================
-        // ARSITEKTUR 1-LANGKAH (FLUX PULID - FULL BODY)
-        // ==========================================
+        // FUNGSI RENDER AI GENERATOR
         async function executeGenerate() {
-            closeModal('modal-token');
+            closeModal('modal-token'); 
             showView('view-loading');
+            
             document.getElementById('loading-title').innerText = "Mengarahkan Gaya & Menjahit Foto 📸";
             document.getElementById('loading-desc').innerText = "AI sedang menyesuaikan pose dan pakaian (Bisa memakan waktu 30-60 detik)...";
 
             try {
                 const photoDir = state.analysisData?.photographyDirection || {};
-
-                const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', {
-                    body: {
-                        userPhotoUrl: state.userPhotoUrl,
-                        gender: localStorage.getItem('tempGender'),
-                        englishPrompt: state.selectedStylePrompt,
-                        pose: photoDir.pose,
-                        background: photoDir.background
-                    }
+                const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
+                    body: { 
+                        userPhotoUrl: state.userPhotoUrl, 
+                        gender: localStorage.getItem('tempGender'), 
+                        englishPrompt: state.selectedStylePrompt, 
+                        pose: photoDir.pose, 
+                        background: photoDir.background 
+                    } 
                 });
-
-                if (aiError) throw aiError;
+                
+                if (aiError) throw aiError; 
                 if (!aiData.success) throw new Error(aiData.error);
-
+                
                 pollGenerationStatus(aiData.requestId);
-
-            } catch (error) {
-                alert("Kesalahan Memulai Render: " + error.message);
-                goBack();
+            } catch (error) { 
+                alert("Kesalahan Memulai Render: " + error.message); 
+                goBack(); 
             }
         }
 
         async function pollGenerationStatus(requestId) {
-            let attempts = 0;
-            const maxAttempts = 30; // Timeout 90 detik
-
+            let attempts = 0; 
+            const maxAttempts = 30; // Max Timeout
+            
             pollingInterval = setInterval(async () => {
-                attempts++;
+                attempts++; 
                 document.getElementById('loading-desc').innerText = `Menjahit pixel... (Proses ${Math.round((attempts/maxAttempts)*100)}%)`;
 
                 try {
-                    const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', {
-                        body: { requestId: requestId }
-                    });
-
-                    if (error) throw error;
+                    const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', { body: { requestId: requestId } });
+                    if (error) throw error; 
                     if (data && data.success === false) throw new Error(data.error);
 
                     if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
                         clearInterval(pollingInterval);
                         
-                        // PEMOTONGAN TOKEN YANG SEBENARNYA (SYNC KE DATABASE)
-                        state.tokens -= 1;
+                        // PEMOTONGAN TOKEN & SYNC KE DATABASE
+                        state.tokens -= 1; 
                         updateHeader();
+                        
                         if (state.userId) {
+                            // Update saldo token
                             await supabaseClient.from('profiles').update({ tokens: state.tokens }).eq('id', state.userId);
+                            
+                            // Simpan gambar ke My Stylio History
+                            await supabaseClient.from('user_gallery').insert({ user_id: state.userId, image_url: data.imageUrl });
                         }
 
-                        // Menampilkan hasil
-                        document.getElementById('final-ai-image').src = data.imageUrl;
-                        renderOtherStyles(); // Merender gaya sisa yang belum dipilih
+                        // Tampilkan hasil foto dan render tawaran upsell gaya lainnya
+                        document.getElementById('final-ai-image').src = data.imageUrl; 
+                        renderOtherStyles(); 
                         showView('view-result');
-                    } else if (data.status === 'FAILED' || data.status === 'CANCELED') {
-                        clearInterval(pollingInterval);
-                        throw new Error("Proses digagalkan oleh server AI.");
+                        
+                    } else if (data.status === 'FAILED' || data.status === 'CANCELED') { 
+                        clearInterval(pollingInterval); 
+                        throw new Error("Proses digagalkan oleh server AI."); 
                     }
-
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollingInterval);
-                        throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi.");
+                    
+                    if (attempts >= maxAttempts) { 
+                        clearInterval(pollingInterval); 
+                        throw new Error("Waktu tunggu habis (Timeout)."); 
                     }
-
-                } catch (err) {
-                    clearInterval(pollingInterval);
-                    alert("GAGAL RENDER: " + err.message);
-                    goBack();
+                } catch (err) { 
+                    clearInterval(pollingInterval); 
+                    alert("GAGAL RENDER: " + err.message); 
+                    goBack(); 
                 }
             }, 3000);
         }
         
-        function downloadImage() { const url = document.getElementById('final-ai-image').src; if(url) window.open(url, '_blank'); }
-        async function shareToIG() { alert("Simpan gambar terlebih dahulu lalu post ke IG!"); }
+        function downloadImage() { 
+            const url = document.getElementById('final-ai-image').src; 
+            if(url) window.open(url, '_blank'); 
+        }
+        
+        async function shareToIG() { 
+            alert("Simpan gambar terlebih dahulu lalu post ke Instagram Anda!"); 
+        }
 
-        // ==========================================
         // LOGIKA PEMBAYARAN MIDTRANS
-        // ==========================================
         async function buyToken(packageId) {
-            showView('view-loading');
-            document.getElementById('loading-title').innerText = "Menyiapkan Tagihan 💳";
+            showView('view-loading'); 
+            document.getElementById('loading-title').innerText = "Menyiapkan Tagihan 💳"; 
             document.getElementById('loading-desc').innerText = "Mohon tunggu sebentar...";
-
+            
             try {
-                const { data, error } = await supabaseClient.functions.invoke('create-transaction', {
-                    body: { userId: state.userId, email: state.userEmail, packageId: packageId }
+                const { data, error } = await supabaseClient.functions.invoke('create-transaction', { 
+                    body: { userId: state.userId, email: state.userEmail, packageId: packageId } 
                 });
-
-                if (error) throw error;
+                
+                if (error) throw error; 
                 if (!data.success) throw new Error(data.error);
-
-                showView('view-pricing');
-
+                
+                showView('view-pricing'); 
+                
                 window.snap.pay(data.snapToken, {
-                    onSuccess: function(result) {
-                        alert("Pembayaran Berhasil diproses!");
+                    onSuccess: function(result) { 
+                        alert("Pembayaran Berhasil diproses!"); 
                         window.location.reload(); 
                     },
-                    onPending: function(result) { alert("Menunggu pembayaran Anda diselesaikan."); },
-                    onError: function(result) { alert("Pembayaran Gagal. Silakan coba lagi."); },
-                    onClose: function() { alert('Anda menutup layar pembayaran sebelum menyelesaikannya.'); }
+                    onPending: function(result) { 
+                        alert("Menunggu pembayaran Anda diselesaikan."); 
+                    },
+                    onError: function(result) { 
+                        alert("Pembayaran Gagal. Silakan coba lagi."); 
+                    },
+                    onClose: function() { 
+                        alert('Anda menutup layar pembayaran sebelum menyelesaikannya.'); 
+                    }
                 });
-            } catch (err) {
-                alert("Kesalahan Sistem Pembayaran: " + err.message);
-                showView('view-pricing');
+            } catch (err) { 
+                alert("Kesalahan Sistem Pembayaran: " + err.message); 
+                showView('view-pricing'); 
             }
         }
     </script>
