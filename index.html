@@ -963,89 +963,70 @@
         let pollingInterval;
 
         // FUNGSI RENDER AI GENERATOR KE FAL.AI
+// FUNGSI RENDER AI 2-STEP PIPELINE
         async function executeGenerate() {
             closeModal('modal-token'); 
             showView('view-loading');
             
             document.getElementById('loading-title').innerText = "Mengarahkan Gaya & Menjahit Foto 📸";
-            document.getElementById('loading-desc').innerText = "AI sedang menyesuaikan pose dan pakaian (Bisa memakan waktu 30-60 detik)...";
+            
+            // Animasi Teks Loading
+            let genMsgIdx = 0;
+            const genMsgs = [
+                "Tahap 1: AI Menganalisis Tinggi & Berat Badan...", 
+                "Tahap 1: Menjahit Pakaian & Postur Tubuh...", 
+                "Tahap 2: Menyesuaikan Wajah Anda (Face Swap)...", 
+                "Finalisasi Detail Rendering..."
+            ];
+            const loadDesc = document.getElementById('loading-desc');
+            loadDesc.innerText = genMsgs[0];
+            const loadInterval = setInterval(() => { 
+                genMsgIdx = (genMsgIdx + 1) % genMsgs.length; 
+                loadDesc.innerText = genMsgs[genMsgIdx]; 
+            }, 5000);
 
             try {
                 const photoDir = state.analysisData?.photographyDirection || {};
+                
+                // Panggil Supabase (Akan otomatis melakukan 2 tahap di server)
                 const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
                     body: { 
                         userPhotoUrl: state.userPhotoUrl, 
-                        gender: localStorage.getItem('tempGender'), 
+                        gender: localStorage.getItem('tempGender'),
+                        height: localStorage.getItem('tempTb'), // Kunci agar postur akurat
+                        weight: localStorage.getItem('tempBb'), // Kunci agar postur akurat
                         englishPrompt: state.selectedStylePrompt, 
                         pose: photoDir.pose, 
                         background: photoDir.background 
                     } 
                 });
                 
+                clearInterval(loadInterval);
+
                 if (aiError) throw aiError; 
                 if (!aiData.success) throw new Error(aiData.error);
                 
-                // SIMPAN INGATAN ANTREAN (AUTO-RESUME)
-                localStorage.setItem('pendingRequestId', aiData.requestId);
+                // JIKA BERHASIL (PEMOTONGAN TOKEN & SYNC KE DATABASE)
+                state.tokens -= 1; 
+                updateHeader();
                 
-                pollGenerationStatus(aiData.requestId);
+                if (state.userId) {
+                    await supabaseClient.from('profiles').update({ tokens: state.tokens }).eq('id', state.userId);
+                    await supabaseClient.from('user_gallery').insert({ user_id: state.userId, image_url: aiData.imageUrl });
+                }
+
+                // Tampilkan hasil foto dan penawaran gaya lain
+                document.getElementById('final-ai-image').src = aiData.imageUrl; 
+                renderOtherStyles(); 
+                showView('view-result');
+
             } catch (error) { 
-                alert("Kesalahan Memulai Render: " + error.message); 
+                clearInterval(loadInterval);
+                alert("GAGAL RENDER: " + error.message); 
                 goBack(); 
             }
         }
 
-        async function pollGenerationStatus(requestId) {
-            let attempts = 0; 
-            const maxAttempts = 100; // TIMEOUT DITAMBAH JADI 5 MENIT UNTUK ANTREAN PANJANG
-            
-            pollingInterval = setInterval(async () => {
-                attempts++; 
-                document.getElementById('loading-desc').innerText = `Menjahit pixel... (Proses ${Math.round((attempts/maxAttempts)*100)}%)`;
-
-                try {
-                    const { data, error } = await supabaseClient.functions.invoke('check-outfit-status', { body: { requestId: requestId } });
-                    if (error) throw error; 
-                    if (data && data.success === false) throw new Error(data.error);
-
-                    if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
-                        clearInterval(pollingInterval);
-                        localStorage.removeItem('pendingRequestId'); // Hapus ingatan karena sukses
-                        
-                        // SINKRONISASI PEMOTONGAN TOKEN KE DATABASE
-                        state.tokens -= 1; 
-                        updateHeader();
-                        
-                        if (state.userId) {
-                            // Update saldo
-                            await supabaseClient.from('profiles').update({ tokens: state.tokens }).eq('id', state.userId);
-                            // Masukkan ke galeri histori
-                            await supabaseClient.from('user_gallery').insert({ user_id: state.userId, image_url: data.imageUrl });
-                        }
-
-                        // Menampilkan hasil dan penawaran gaya lain
-                        document.getElementById('final-ai-image').src = data.imageUrl; 
-                        renderOtherStyles(); 
-                        showView('view-result');
-                        
-                    } else if (data.status === 'FAILED' || data.status === 'CANCELED') { 
-                        clearInterval(pollingInterval); 
-                        localStorage.removeItem('pendingRequestId'); // Hapus ingatan
-                        throw new Error("Proses digagalkan oleh server AI."); 
-                    }
-                    
-                    if (attempts >= maxAttempts) { 
-                        clearInterval(pollingInterval); 
-                        localStorage.removeItem('pendingRequestId'); // Hapus ingatan
-                        throw new Error("Waktu tunggu habis (Timeout antrean). Silakan coba generate ulang."); 
-                    }
-                } catch (err) { 
-                    clearInterval(pollingInterval); 
-                    alert("GAGAL RENDER: " + err.message); 
-                    goBack(); 
-                }
-            }, 3000);
-        }
         
         function downloadImage() { 
             const url = document.getElementById('final-ai-image').src; 
