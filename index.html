@@ -171,7 +171,9 @@
                     <div class="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner border border-pink-100">🔒</div>
                     <h2 class="text-2xl font-bold text-center mb-2">Simpan Laporanmu!</h2>
                     <p class="text-sm text-slate-500 text-center mb-8 px-2">Masuk ke <strong>stylio.id</strong> untuk menyimpan hasil analisis 2 Agen AI Stylist Profesional.</p>
-                    <button onclick="triggerDirectLogin()" class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl shadow-sm active:bg-slate-50 flex justify-center items-center gap-3">
+                    
+                    <!-- TOMBOL INI MEMANGGIL handleGoogleLogin() UNTUK MEMPERTAHANKAN DATA -->
+                    <button onclick="handleGoogleLogin()" class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl shadow-sm active:bg-slate-50 flex justify-center items-center gap-3">
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
                         Lanjutkan dengan Google
                     </button>
@@ -423,6 +425,7 @@
     </div>
 
     <script>
+        // INISIALISASI SUPABASE
         const SUPABASE_URL = 'https://ddigivdqvsvyztswhqdb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaWdpdmRxdnN2eXp0c3docWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MDY5MTYsImV4cCI6MjEwMjE4MjkxNn0.xTyVrLjsuHP5WHA2mlFva0Cdzel7rqLhzJX_ZE6iek0';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -519,6 +522,7 @@
         window.onload = async () => {
             showView('view-input');
             const { data: { session } } = await supabaseClient.auth.getSession();
+            
             if (session) {
                 state.isLoggedIn = true; 
                 state.userId = session.user.id; 
@@ -542,14 +546,14 @@
 
                     if (localStorage.getItem('tempPhoto')) { 
                         state.photoUploaded = true; 
-                        document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap!</h3>`; 
+                        document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap Diproses!</h3>`; 
                     }
                     startAnalysis(); 
                 }
             }
         };
 
-        // NAVIGASI STEP WIZARD
+        // NAVIGASI STEP WIZARD & VALIDASI
         function nextStep(step) {
             if(step === 2 && !state.photoUploaded) { 
                 alert("Tolong unggah foto Anda terlebih dahulu!"); 
@@ -561,7 +565,7 @@
             }
             if(step === 4) {
                 const tb = parseInt(document.getElementById('input-tb').value);
-                // Validasi hardcode JS tinggi badan
+                // Validasi Tinggi Badan (50 - 250 cm)
                 if(!tb || tb < 50 || tb > 250) { 
                     alert("⚠️ Tinggi badan tidak valid. Mohon masukkan angka yang realistis (50 - 250 cm)."); 
                     return; 
@@ -588,23 +592,44 @@
             document.getElementById('input-style').value = vibeText; 
         }
 
-        // HANDLE UPLOAD FOTO
+        // HANDLE UPLOAD FOTO & KOMPRESI CANVAS
         document.getElementById('file-upload').addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
                 state.photoUploaded = true; 
                 state.photoFile = e.target.files[0];
                 
-                const r = new FileReader(); 
-                r.onload = function(evt) { 
-                    try { localStorage.setItem('tempPhoto', evt.target.result); } catch(err){} 
+                const reader = new FileReader(); 
+                reader.onload = function(evt) { 
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; // Kompresi aman
+                        let scaleSize = 1;
+                        if(img.width > MAX_WIDTH) { 
+                            scaleSize = MAX_WIDTH / img.width; 
+                        }
+                        canvas.width = img.width * scaleSize;
+                        canvas.height = img.height * scaleSize;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        try { 
+                            localStorage.setItem('tempPhoto', compressedBase64); 
+                        } catch(err){ 
+                            console.error("Gagal menyimpan foto ke memori browser", err); 
+                        }
+                    };
+                    img.src = evt.target.result;
                 }; 
-                r.readAsDataURL(state.photoFile);
+                reader.readAsDataURL(state.photoFile);
                 
                 document.getElementById('upload-box').innerHTML = `<div class="text-4xl mb-2">✅</div><h3 class="font-bold text-pink-600 text-sm">Foto Siap Diproses!</h3>`;
             }
         });
 
-        // HANDLE SUBMIT DATA
+        // HANDLE SUBMIT DATA DARI WIZARD
         function triggerSubmitProcess() {
             const g = document.getElementById('input-gender').value;
             const tb = parseInt(document.getElementById('input-tb').value);
@@ -616,9 +641,9 @@
                 return; 
             }
             
-            // Validasi hardcode JS berat badan
+            // Validasi Berat Badan (20 - 250 kg)
             if(bb < 20 || bb > 250) { 
-                alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (20 - 250 kg)."); 
+                alert("⚠️ Berat badan tidak valid. Mohon masukkan angka yang realistis (20 - 250 kg)."); 
                 return; 
             }
 
@@ -635,9 +660,15 @@
             }
         }
         
-        // FUNGSI AUTH & USER STATE
+        // FUNGSI AUTH LOGIN GOOGLE
+        // Digunakan oleh header (menghapus flag state)
         function triggerDirectLogin() { 
             localStorage.removeItem('wantsToGenerate'); 
+            supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); 
+        }
+
+        // Digunakan oleh kotak login di tengah proses (mempertahankan flag state)
+        function handleGoogleLogin() { 
             supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); 
         }
 
@@ -656,18 +687,13 @@
             document.getElementById('token-count').innerText = state.tokens; 
         }
 
-        function openModal(id) { 
-            document.getElementById(id).classList.add('show'); 
-        }
-        
-        function closeModal(id) { 
-            document.getElementById(id).classList.remove('show'); 
-        }
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
         // FUNGSI LOAD MY STYLIO (GALERI HISTORY)
         async function openGallery() {
             if (!state.isLoggedIn) { 
-                alert("Silakan masuk (login) untuk melihat riwayat gaya Anda."); 
+                alert("Silakan masuk (login) terlebih dahulu untuk melihat riwayat gaya Anda."); 
                 triggerDirectLogin(); 
                 return; 
             }
@@ -676,10 +702,11 @@
             const grid = document.getElementById('gallery-grid');
             const emptyState = document.getElementById('gallery-empty');
             
-            grid.innerHTML = '<div class="col-span-2 text-center text-sm text-slate-500 py-10">Memuat riwayat gaya...</div>';
+            grid.innerHTML = '<div class="col-span-2 text-center text-sm text-slate-500 py-10">Memuat riwayat gaya Anda...</div>';
             emptyState.classList.add('hidden');
 
             try {
+                // Menarik data dari tabel Supabase 'user_gallery'
                 const { data, error } = await supabaseClient
                     .from('user_gallery')
                     .select('image_url')
@@ -702,12 +729,12 @@
                     });
                 }
             } catch (err) {
-                alert("Gagal memuat galeri. Pastikan Anda sudah membuat tabel 'user_gallery' di Supabase.");
+                alert("Gagal memuat galeri Anda. Terjadi kesalahan jaringan.");
                 goBack();
             }
         }
 
-        // FUNGSI ANALISIS AI
+        // FUNGSI MEMULAI ANALISIS AI
         async function startAnalysis() {
             showView('view-loading');
             
@@ -735,7 +762,7 @@
                 let file = state.photoFile;
                 if (!file) { 
                     const b64 = localStorage.getItem('tempPhoto'); 
-                    if (!b64) throw new Error("Foto hilang, mohon upload ulang."); 
+                    if (!b64) throw new Error("Foto tidak ditemukan. Mohon upload ulang foto Anda."); 
                     file = await (await fetch(b64)).blob(); 
                 }
                 
@@ -924,7 +951,7 @@
 
         let pollingInterval;
 
-        // FUNGSI RENDER AI GENERATOR
+        // FUNGSI RENDER AI GENERATOR KE FAL.AI
         async function executeGenerate() {
             closeModal('modal-token'); 
             showView('view-loading');
@@ -970,19 +997,18 @@
                     if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
                         clearInterval(pollingInterval);
                         
-                        // PEMOTONGAN TOKEN & SYNC KE DATABASE
+                        // SINKRONISASI PEMOTONGAN TOKEN KE DATABASE
                         state.tokens -= 1; 
                         updateHeader();
                         
                         if (state.userId) {
-                            // Update saldo token
+                            // Update saldo
                             await supabaseClient.from('profiles').update({ tokens: state.tokens }).eq('id', state.userId);
-                            
-                            // Simpan gambar ke My Stylio History
+                            // Masukkan ke galeri histori
                             await supabaseClient.from('user_gallery').insert({ user_id: state.userId, image_url: data.imageUrl });
                         }
 
-                        // Tampilkan hasil foto dan render tawaran upsell gaya lainnya
+                        // Menampilkan hasil dan penawaran gaya lain
                         document.getElementById('final-ai-image').src = data.imageUrl; 
                         renderOtherStyles(); 
                         showView('view-result');
@@ -994,7 +1020,7 @@
                     
                     if (attempts >= maxAttempts) { 
                         clearInterval(pollingInterval); 
-                        throw new Error("Waktu tunggu habis (Timeout)."); 
+                        throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi."); 
                     }
                 } catch (err) { 
                     clearInterval(pollingInterval); 
