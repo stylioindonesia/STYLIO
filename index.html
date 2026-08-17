@@ -509,6 +509,7 @@
             localStorage.removeItem('tempTb'); 
             localStorage.removeItem('tempBb'); 
             localStorage.removeItem('tempStyle');
+            localStorage.removeItem('pendingRequestId'); // Hapus ingatan antrean saat reset
             
             // Kembalikan ke Step 1
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
@@ -518,7 +519,7 @@
             showView('view-input'); 
         }
 
-        // INIT SAAT HALAMAN DIBUKA
+        // INIT SAAT HALAMAN DIBUKA & FITUR AUTO-RESUME
         window.onload = async () => {
             showView('view-input');
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -531,6 +532,16 @@
                 const { data: profile } = await supabaseClient.from('profiles').select('tokens').eq('id', state.userId).single();
                 state.tokens = profile ? profile.tokens : 0; 
                 updateHeader();
+
+                // FITUR AUTO-RESUME JIKA USER SEMPAT KELUAR APLIKASI
+                const pendingReq = localStorage.getItem('pendingRequestId');
+                if (pendingReq) {
+                    document.getElementById('loading-title').innerText = "Menjemput Foto... 📸";
+                    document.getElementById('loading-desc').innerText = "Melanjutkan proses visualisasi yang sempat ditinggalkan...";
+                    showView('view-loading');
+                    pollGenerationStatus(pendingReq);
+                    return; // Berhenti di sini, biarkan fungsi pollGenerationStatus yang bekerja
+                }
 
                 // Lanjutkan proses jika sebelumnya login tertunda
                 if (localStorage.getItem('wantsToGenerate') === 'true') {
@@ -643,7 +654,7 @@
             
             // Validasi Berat Badan (20 - 250 kg)
             if(bb < 20 || bb > 250) { 
-                alert("⚠️ Berat badan tidak valid. Mohon masukkan angka yang realistis (20 - 250 kg)."); 
+                alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (20 - 250 kg)."); 
                 return; 
             }
 
@@ -974,6 +985,9 @@
                 if (aiError) throw aiError; 
                 if (!aiData.success) throw new Error(aiData.error);
                 
+                // SIMPAN INGATAN ANTREAN (AUTO-RESUME)
+                localStorage.setItem('pendingRequestId', aiData.requestId);
+                
                 pollGenerationStatus(aiData.requestId);
             } catch (error) { 
                 alert("Kesalahan Memulai Render: " + error.message); 
@@ -983,7 +997,7 @@
 
         async function pollGenerationStatus(requestId) {
             let attempts = 0; 
-            const maxAttempts = 30; // Max Timeout
+            const maxAttempts = 100; // TIMEOUT DITAMBAH JADI 5 MENIT UNTUK ANTREAN PANJANG
             
             pollingInterval = setInterval(async () => {
                 attempts++; 
@@ -996,6 +1010,7 @@
 
                     if (data.status === 'COMPLETED' || data.status === 'SUCCESS') {
                         clearInterval(pollingInterval);
+                        localStorage.removeItem('pendingRequestId'); // Hapus ingatan karena sukses
                         
                         // SINKRONISASI PEMOTONGAN TOKEN KE DATABASE
                         state.tokens -= 1; 
@@ -1015,12 +1030,14 @@
                         
                     } else if (data.status === 'FAILED' || data.status === 'CANCELED') { 
                         clearInterval(pollingInterval); 
+                        localStorage.removeItem('pendingRequestId'); // Hapus ingatan
                         throw new Error("Proses digagalkan oleh server AI."); 
                     }
                     
                     if (attempts >= maxAttempts) { 
                         clearInterval(pollingInterval); 
-                        throw new Error("Waktu tunggu habis (Timeout). Silakan coba lagi."); 
+                        localStorage.removeItem('pendingRequestId'); // Hapus ingatan
+                        throw new Error("Waktu tunggu habis (Timeout antrean). Silakan coba generate ulang."); 
                     }
                 } catch (err) { 
                     clearInterval(pollingInterval); 
