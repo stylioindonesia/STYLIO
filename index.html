@@ -312,9 +312,9 @@
                 <div id="view-result" class="view-section px-5 py-6 bg-slate-900 text-white min-h-screen" style="display: none;">
                     <h2 class="text-xl font-bold text-pink-400 mb-6">Stylio Premium</h2>
                     
-                    <div class="relative rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/10">
-                        <img id="final-ai-image" src="" class="w-full object-cover aspect-[3/4] bg-slate-800">
-                    </div>
+                    <div class="relative rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/10 flex justify-center bg-slate-800">
+    <img id="final-ai-image" src="" class="w-full h-auto max-h-[70vh] object-contain">
+</div>
                     
                     <!-- BUTTON ACTION: SAVE & SHARE -->
                     <div class="grid grid-cols-2 gap-3 mb-6">
@@ -614,7 +614,7 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // Kompresi aman
+                        const MAX_WIDTH = 1500; // Resolusi lebih tinggi agar AI bisa membaca pori-pori wajah
                         let scaleSize = 1;
                         if(img.width > MAX_WIDTH) { 
                             scaleSize = MAX_WIDTH / img.width; 
@@ -625,7 +625,7 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         
-                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.95); // Kualitas 95%
                         try { 
                             localStorage.setItem('tempPhoto', compressedBase64); 
                         } catch(err){ 
@@ -965,81 +965,50 @@
         // FUNGSI RENDER AI GENERATOR KE FAL.AI
 // FUNGSI RENDER AI 2-STEP PIPELINE
 async function executeGenerate() {
-    closeModal('modal-token');
+    closeModal('modal-token'); 
     showView('view-loading');
+    
     document.getElementById('loading-title').innerText = "Menjahit Baju Virtual 🪡";
-    document.getElementById('loading-desc').innerText = "Proses ini memakan waktu sekitar 10-20 detik...";
+    document.getElementById('loading-desc').innerText = "Menyesuaikan wajah dan postur (10-20 detik)...";
 
     try {
-        let fileToUpload = state.photoFile;
-        if (!fileToUpload) {
-            const base64Data = localStorage.getItem('tempPhoto');
-            if (!base64Data) throw new Error("Foto profil hilang. Silakan upload ulang foto Anda.");
-            const response = await fetch(base64Data);
-            fileToUpload = await response.blob();
+        // 1. Validasi keamanan data sebelum dikirim ke server
+        if (!state.userPhotoUrl) {
+            throw new Error("Sesi foto hilang. Silakan refresh halaman dan mulai ulang.");
         }
-
-        // 1. Proses Upload Foto ke Supabase Storage
-        const fileName = `${state.userId}-${Date.now()}.jpg`;
-        const { data: uploadData, error: uploadError } = await supabaseClient.storage
-            .from('user_photos')
-            .upload(fileName, fileToUpload);
-            
-        if (uploadError) throw uploadError;
-
-        // 2. Ambil Public URL dari foto yang di-upload
-        const { data: publicUrlData } = supabaseClient.storage
-            .from('user_photos')
-            .getPublicUrl(fileName);
-        const userPhotoUrl = publicUrlData.publicUrl;
-
-        // 3. Ambil nilai Gender & Ekstrak PROMPT_TAG dari item yang dipilih untuk AI
-        const userGender = localStorage.getItem('tempGender') || 'Wanita';
+        if (!state.selectedStylePrompt) {
+            throw new Error("Silakan pilih salah satu Referensi Gaya terlebih dahulu.");
+        }
         
-        const outfitPayload = {
-            top: state.selectedOutfit?.top?.prompt_tag || 'casual shirt',
-            bottom: state.selectedOutfit?.bottom?.prompt_tag || 'pants',
-            shoes: state.selectedOutfit?.shoes?.prompt_tag || 'shoes',
-            accessory: state.selectedOutfit?.accessory?.prompt_tag || 'none'
-        };
-
-        // 4. Panggil Supabase Edge Function dengan Payload yang Sesuai Struktur PuLID
-        const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', {
+        // 2. Panggil Edge Function dengan parameter 'englishPrompt' yang benar
+        const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
             body: { 
-                userId: state.userId, 
-                selectedOutfit: outfitPayload, // Mengirimkan teks tag, bukan objek mentah
-                userPhotoUrl: userPhotoUrl,
-                gender: userGender
-            }
+                userId: state.userId,
+                userPhotoUrl: state.userPhotoUrl, 
+                gender: localStorage.getItem('tempGender') || 'Wanita',
+                englishPrompt: state.selectedStylePrompt // Ini adalah kunci yang dicari server!
+            } 
         });
 
-        if (aiError) throw aiError;
+        if (aiError) throw aiError; 
         if (!aiData.success) throw new Error(aiData.error);
-
-        // 5. Jika Sukses, Kurangi Token di State & Update UI
+        
+        // 3. Jika berhasil, potong token dan update UI
         state.tokens -= 1; 
         updateHeader();
-
-        // 6. Tampilkan Hasil Akhir & Panggil Link Shopee Affiliate
-        document.getElementById('final-ai-image').src = aiData.imageUrl;
         
-        // Panggil fungsi render link shopee di bawah hasil gambar jika Anda menyediakannya
-        if (typeof renderShopeeLinks === 'function') {
-            renderShopeeLinks();
-        }
-
+        document.getElementById('final-ai-image').src = aiData.imageUrl; 
+        renderOtherStyles(); 
         showView('view-result');
-        
-        // Bersihkan tempPhoto setelah berhasil generate
-        localStorage.removeItem('tempPhoto');
 
-    } catch (error) {
-        alert("Waduh, terjadi kesalahan: " + error.message);
-        showView('view-references'); 
+    } catch (error) { 
+        // Pesan error sekarang akan diawali dengan "GAGAL RENDER:"
+        alert("GAGAL RENDER: " + error.message); 
+        goBack(); 
     }
 }
-        
-        function downloadImage() { 
+
+function downloadImage() { 
             const url = document.getElementById('final-ai-image').src; 
             if(url) window.open(url, '_blank'); 
         }
