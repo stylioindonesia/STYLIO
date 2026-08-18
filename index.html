@@ -964,69 +964,80 @@
 
         // FUNGSI RENDER AI GENERATOR KE FAL.AI
 // FUNGSI RENDER AI 2-STEP PIPELINE
-        async function executeGenerate() {
-            closeModal('modal-token'); 
-            showView('view-loading');
-            
-            document.getElementById('loading-title').innerText = "Mengarahkan Gaya & Menjahit Foto 📸";
-            
-            // Animasi Teks Loading
-            let genMsgIdx = 0;
-            const genMsgs = [
-                "Tahap 1: AI Menganalisis Tinggi & Berat Badan...", 
-                "Tahap 1: Menjahit Pakaian & Postur Tubuh...", 
-                "Tahap 2: Menyesuaikan Wajah Anda (Face Swap)...", 
-                "Finalisasi Detail Rendering..."
-            ];
-            const loadDesc = document.getElementById('loading-desc');
-            loadDesc.innerText = genMsgs[0];
-            const loadInterval = setInterval(() => { 
-                genMsgIdx = (genMsgIdx + 1) % genMsgs.length; 
-                loadDesc.innerText = genMsgs[genMsgIdx]; 
-            }, 5000);
+async function executeGenerate() {
+    closeModal('modal-token');
+    showView('view-loading');
+    document.getElementById('loading-title').innerText = "Menjahit Baju Virtual 🪡";
+    document.getElementById('loading-desc').innerText = "Proses ini memakan waktu sekitar 10-20 detik...";
 
-            try {
-                const photoDir = state.analysisData?.photographyDirection || {};
-                
-                // Panggil Supabase (Akan otomatis melakukan 2 tahap di server)
-                const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
-                    body: { 
-                        userPhotoUrl: state.userPhotoUrl, 
-                        gender: localStorage.getItem('tempGender'),
-                        height: localStorage.getItem('tempTb'), // Kunci agar postur akurat
-                        weight: localStorage.getItem('tempBb'), // Kunci agar postur akurat
-                        englishPrompt: state.selectedStylePrompt, 
-                        pose: photoDir.pose, 
-                        background: photoDir.background 
-                    } 
-                });
-                
-                clearInterval(loadInterval);
-
-                if (aiError) throw aiError; 
-                if (!aiData.success) throw new Error(aiData.error);
-                
-                // JIKA BERHASIL (PEMOTONGAN TOKEN & SYNC KE DATABASE)
-                state.tokens -= 1; 
-                updateHeader();
-                
-                if (state.userId) {
-                    await supabaseClient.from('profiles').update({ tokens: state.tokens }).eq('id', state.userId);
-                    await supabaseClient.from('user_gallery').insert({ user_id: state.userId, image_url: aiData.imageUrl });
-                }
-
-                // Tampilkan hasil foto dan penawaran gaya lain
-                document.getElementById('final-ai-image').src = aiData.imageUrl; 
-                renderOtherStyles(); 
-                showView('view-result');
-
-            } catch (error) { 
-                clearInterval(loadInterval);
-                alert("GAGAL RENDER: " + error.message); 
-                goBack(); 
-            }
+    try {
+        let fileToUpload = state.photoFile;
+        if (!fileToUpload) {
+            const base64Data = localStorage.getItem('tempPhoto');
+            if (!base64Data) throw new Error("Foto profil hilang. Silakan upload ulang foto Anda.");
+            const response = await fetch(base64Data);
+            fileToUpload = await response.blob();
         }
 
+        // 1. Proses Upload Foto ke Supabase Storage
+        const fileName = `${state.userId}-${Date.now()}.jpg`;
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+            .from('user_photos')
+            .upload(fileName, fileToUpload);
+            
+        if (uploadError) throw uploadError;
+
+        // 2. Ambil Public URL dari foto yang di-upload
+        const { data: publicUrlData } = supabaseClient.storage
+            .from('user_photos')
+            .getPublicUrl(fileName);
+        const userPhotoUrl = publicUrlData.publicUrl;
+
+        // 3. Ambil nilai Gender & Ekstrak PROMPT_TAG dari item yang dipilih untuk AI
+        const userGender = localStorage.getItem('tempGender') || 'Wanita';
+        
+        const outfitPayload = {
+            top: state.selectedOutfit?.top?.prompt_tag || 'casual shirt',
+            bottom: state.selectedOutfit?.bottom?.prompt_tag || 'pants',
+            shoes: state.selectedOutfit?.shoes?.prompt_tag || 'shoes',
+            accessory: state.selectedOutfit?.accessory?.prompt_tag || 'none'
+        };
+
+        // 4. Panggil Supabase Edge Function dengan Payload yang Sesuai Struktur PuLID
+        const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', {
+            body: { 
+                userId: state.userId, 
+                selectedOutfit: outfitPayload, // Mengirimkan teks tag, bukan objek mentah
+                userPhotoUrl: userPhotoUrl,
+                gender: userGender
+            }
+        });
+
+        if (aiError) throw aiError;
+        if (!aiData.success) throw new Error(aiData.error);
+
+        // 5. Jika Sukses, Kurangi Token di State & Update UI
+        state.tokens -= 1; 
+        updateHeader();
+
+        // 6. Tampilkan Hasil Akhir & Panggil Link Shopee Affiliate
+        document.getElementById('final-ai-image').src = aiData.imageUrl;
+        
+        // Panggil fungsi render link shopee di bawah hasil gambar jika Anda menyediakannya
+        if (typeof renderShopeeLinks === 'function') {
+            renderShopeeLinks();
+        }
+
+        showView('view-result');
+        
+        // Bersihkan tempPhoto setelah berhasil generate
+        localStorage.removeItem('tempPhoto');
+
+    } catch (error) {
+        alert("Waduh, terjadi kesalahan: " + error.message);
+        showView('view-references'); 
+    }
+}
         
         function downloadImage() { 
             const url = document.getElementById('final-ai-image').src; 
