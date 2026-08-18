@@ -964,7 +964,7 @@
 
         let pollingInterval;
 
-        // FUNGSI RENDER AI GENERATOR KE FAL.AI
+
 // FUNGSI RENDER AI 2-STEP PIPELINE
 async function executeGenerate() {
     closeModal('modal-token'); 
@@ -974,28 +974,22 @@ async function executeGenerate() {
     document.getElementById('loading-desc').innerText = "Menyesuaikan wajah dan postur (10-20 detik)...";
 
     try {
-        // 1. Validasi keamanan data sebelum dikirim ke server
-        if (!state.userPhotoUrl) {
-            throw new Error("Sesi foto hilang. Silakan refresh halaman dan mulai ulang.");
-        }
-        if (!state.selectedStylePrompt) {
-            throw new Error("Silakan pilih salah satu Referensi Gaya terlebih dahulu.");
-        }
+        if (!state.userPhotoUrl) throw new Error("Sesi foto hilang. Silakan refresh halaman dan mulai ulang.");
+        if (!state.selectedStylePrompt) throw new Error("Silakan pilih salah satu Referensi Gaya terlebih dahulu.");
         
-        // 2. Panggil Edge Function dengan parameter 'englishPrompt' yang benar
         const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
             body: { 
                 userId: state.userId,
                 userPhotoUrl: state.userPhotoUrl, 
                 gender: localStorage.getItem('tempGender') || 'Wanita',
-                englishPrompt: state.selectedStylePrompt // Ini adalah kunci yang dicari server!
+                englishPrompt: state.selectedStylePrompt
             } 
         });
 
         if (aiError) throw aiError; 
         if (!aiData.success) throw new Error(aiData.error);
         
-        // 3. Jika berhasil, potong token dan update UI
+        // 1. LANGSUNG UPDATE UI & TAMPILKAN GAMBAR (Biar user tidak nunggu)
         state.tokens -= 1; 
         updateHeader();
         
@@ -1003,13 +997,23 @@ async function executeGenerate() {
         renderOtherStyles(); 
         showView('view-result');
 
+        // 2. SIMPAN KE GALERI DI LATAR BELAKANG (Background Task)
+        // Perhatikan: Tidak ada kata 'await' di depannya!
+        supabaseClient
+            .from('user_gallery')
+            .insert([{ user_id: state.userId, image_url: aiData.imageUrl }])
+            .then(({ error: dbError }) => {
+                if (dbError) console.error("Gagal simpan galeri:", dbError.message);
+            })
+            .catch(saveErr => {
+                console.warn("Koneksi gagal saat simpan galeri:", saveErr);
+            });
+
     } catch (error) { 
-        // Pesan error sekarang akan diawali dengan "GAGAL RENDER:"
         alert("GAGAL RENDER: " + error.message); 
         goBack(); 
     }
 }
-
 function downloadImage() { 
             const url = document.getElementById('final-ai-image').src; 
             if(url) window.open(url, '_blank'); 
