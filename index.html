@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stylio.id - Premium AI Personal Stylist</title>
+    <meta name="description" content="Temukan gaya berpakaian terbaikmu dengan AI Personal Stylist dari Stylio.id. Dapatkan analisis postur, skin tone, dan referensi outfit yang akurat.">
+    <meta name="keywords" content="AI stylist, rekomendasi gaya pria, rekomendasi outfit wanita, fashion AI, stylio">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -46,9 +48,16 @@
         .style-card.selected { border-color: #ec4899; background: #fffdfef0; box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.25); transform: translateY(-2px); }
         .style-badge { position: absolute; top: 0; right: 0; background: #ec4899; color: white; padding: 0.25rem 1rem; border-bottom-left-radius: 1rem; font-size: 0.7rem; font-weight: bold; opacity: 0; transform: translateY(-10px); transition: all 0.3s; }
         .style-card.selected .style-badge { opacity: 1; transform: translateY(0); }
+
+        /* --- DESAIN BARU MY STYLIO (1 KOLOM) --- */
+        .gallery-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; transition: transform 0.2s ease; }
+        .gallery-card:active { transform: scale(0.98); }
+        .gallery-card img { width: 100%; height: auto; display: block; object-fit: cover; }
+        .gallery-card-info { padding: 16px; text-align: left; border-top: 1px solid #f1f5f9; }
+        .gallery-card-title { font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 6px; line-height: 1.3; }
+        .gallery-card-event { font-size: 12px; font-weight: 600; color: #ec4899; display: flex; align-items: center; gap: 6px; }
     </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1380976533513863"
-     crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1380976533513863" crossorigin="anonymous"></script>
 </head>
 <body class="text-slate-800">
 
@@ -68,7 +77,6 @@
             
             <!-- WALLET & MENU -->
             <div id="user-wallet" class="hidden items-center gap-2">
-                <!-- Tombol My Stylio (Gallery) -->
                 <button onclick="openGallery()" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 active:bg-slate-200 transition flex items-center gap-1">🖼️ Stylio</button>
 
                 <div class="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5">
@@ -100,7 +108,6 @@
                             </div>
                             <input type="file" id="file-upload" class="hidden" accept="image/*">
                             
-                            <!-- Dynamic Tips -->
                             <div class="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3 shadow-sm">
                                 <span class="text-blue-500 text-lg mt-0.5">💡</span>
                                 <p id="photo-tips-text" class="text-xs text-blue-800 leading-relaxed font-medium">
@@ -126,7 +133,7 @@
                             </div>
                         </div>
 
-                        <!-- STEP 3: TINGGI BADAN (WITH HARDCODE LIMITS) -->
+                        <!-- STEP 3: TINGGI BADAN -->
                         <div id="step-3" class="step-container">
                             <label class="block text-sm font-bold text-slate-700 mb-2">3. Tinggi Badan</label>
                             <div class="relative mb-6">
@@ -139,7 +146,7 @@
                             </div>
                         </div>
 
-                        <!-- STEP 4: BERAT BADAN & VIBE (WITH HARDCODE LIMITS) -->
+                        <!-- STEP 4: BERAT BADAN & VIBE -->
                         <div id="step-4" class="step-container">
                             <label class="block text-sm font-bold text-slate-700 mb-2">4. Berat Badan & Target Acara</label>
                             <div class="relative mb-4">
@@ -174,7 +181,6 @@
                     <h2 class="text-2xl font-bold text-center mb-2">Simpan Laporanmu!</h2>
                     <p class="text-sm text-slate-500 text-center mb-8 px-2">Masuk ke <strong>stylio.id</strong> untuk menyimpan hasil analisis 2 Agen AI Stylist Profesional.</p>
                     
-                    <!-- TOMBOL INI MEMANGGIL handleGoogleLogin() UNTUK MEMPERTAHANKAN DATA -->
                     <button onclick="handleGoogleLogin()" class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl shadow-sm active:bg-slate-50 flex justify-center items-center gap-3">
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5">
                         Lanjutkan dengan Google
@@ -196,7 +202,6 @@
                         <p class="text-xs text-slate-500 mt-2 font-medium">100% dianalisa khusus untuk profil fisik Anda.</p>
                     </div>
 
-                    <!-- UNIVERSAL DISCLAIMER BOX -->
                     <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mb-5 flex gap-3 shadow-sm">
                         <span class="text-xl">💡</span>
                         <div>
@@ -207,7 +212,7 @@
                         </div>
                     </div>
 
-                    <!-- 1. GRAFIK RADAR -->
+                    <!-- GRAFIK RADAR -->
                     <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-5 flex flex-col items-center">
                         <h3 class="font-bold text-slate-800 text-sm w-full mb-2">🧬 DNA Gaya (Style Metrics)</h3>
                         <div class="w-full max-w-[280px] aspect-square relative">
@@ -215,7 +220,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. ANALISIS KULIT & PROPORSI -->
+                    <!-- ANALISIS KULIT & PROPORSI -->
                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-5">
                         <h3 class="font-bold text-slate-800 text-sm mb-4 border-b border-slate-100 pb-3 flex items-center gap-2">✨ Analisis Fisik & Skin Tone</h3>
                         <div class="space-y-5">
@@ -278,7 +283,7 @@
                         </div>
                     </div>
 
-                    <!-- 3. COLOR PALETTE EVENT SPECIFIC -->
+                    <!-- COLOR PALETTE EVENT SPECIFIC -->
                     <div class="bg-slate-900 p-6 rounded-3xl shadow-lg mb-6 text-white relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
                         <h3 class="font-bold text-slate-100 text-sm mb-1">🎨 Palet Warna Acara</h3>
@@ -293,7 +298,7 @@
                         </div>
                     </div>
 
-                    <!-- 4. STYLE REFERENCES -->
+                    <!-- STYLE REFERENCES -->
                     <div class="mb-8">
                         <div class="mb-5 px-1 bg-pink-50 border border-pink-100 rounded-xl p-4 text-center">
                             <h3 class="text-sm font-extrabold text-slate-800 mb-1" id="event-context-title">Rekomendasi Gaya</h3>
@@ -315,41 +320,44 @@
                     <h2 class="text-xl font-bold text-pink-400 mb-6">Stylio Premium</h2>
                     
                     <div class="relative rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/10 flex justify-center bg-slate-800">
-    <img id="final-ai-image" src="" class="w-full h-auto max-h-[70vh] object-contain">
-</div>
+                        <img id="final-ai-image" src="" class="w-full h-auto max-h-[70vh] object-contain">
+                    </div>
                     
-                    <!-- BUTTON ACTION: SAVE & SHARE -->
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button onclick="downloadImage()" class="flex items-center justify-center gap-2 bg-white text-slate-900 font-bold py-3.5 rounded-xl">⬇️ Simpan</button>
                         <button onclick="shareToIG()" class="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white font-bold py-3.5 rounded-xl">📸 Share IG</button>
                     </div>
                     
-                    <!-- TOMBOL HARD RESET (BACK TO HOME) -->
                     <button onclick="resetApp()" class="w-full border border-slate-700 text-slate-300 font-bold py-4 rounded-xl flex items-center justify-center gap-2 mb-8 hover:bg-slate-800 active:bg-slate-800 transition">🏠 Kembali ke Beranda</button>
 
-                    <!-- UPSELL: COBA GAYA LAIN -->
                     <div class="border-t border-slate-700 pt-8 pb-10">
                         <h3 class="text-sm font-bold text-slate-300 mb-4">✨ Coba Visualisasi Gaya Lain:</h3>
-                        <div id="other-styles-container" class="space-y-3">
-                            <!-- Injected by JS -->
-                        </div>
+                        <div id="other-styles-container" class="space-y-3"></div>
                     </div>
                 </div>
 
-                <!-- VIEW MY STYLIO (GALLERY HISTORY) -->
+                <!-- VIEW MY STYLIO (GALLERY HISTORY DENGAN FILTER PENCARIAN) -->
                 <div id="view-gallery" class="view-section px-5 py-6 bg-[#f8fafc] min-h-screen" style="display: none;">
                     <div class="flex items-center gap-3 mb-6">
                         <button onclick="goBack()" class="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 active:bg-slate-100">◀</button>
                         <h2 class="text-xl font-bold text-slate-800">My Stylio History</h2>
                     </div>
+
+                    <!-- KOLOM PENCARIAN -->
+                    <div class="mb-5">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">🔍</span>
+                            <input type="text" id="search-gallery" oninput="filterGallery()" placeholder="Cari nama acara atau gaya..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:border-pink-500 transition shadow-sm">
+                        </div>
+                    </div>
                     
-                    <!-- Grid Foto -->
-                    <div id="gallery-grid" class="grid grid-cols-2 gap-3">
+                    <!-- Grid Foto (1 KOLOM) -->
+                    <div id="gallery-grid" class="flex flex-col gap-5">
                         <!-- Injected via JS -->
                     </div>
 
                     <!-- State Kosong -->
-                    <div id="gallery-empty" class="hidden flex-col items-center justify-center py-24 text-center">
+                    <div id="gallery-empty" class="hidden flex-col items-center justify-center py-20 text-center">
                         <div class="text-5xl mb-4 opacity-50">📭</div>
                         <h3 class="text-base font-extrabold text-slate-700 mb-1">Belum ada gaya visual</h3>
                         <p class="text-xs text-slate-500 px-4">Mulai audit dan generate gaya pertama Anda untuk melihat riwayatnya di sini.</p>
@@ -396,7 +404,7 @@
                 <span class="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Advertisement</span>
                 <div class="w-full max-w-[320px] h-[50px] bg-white border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs font-medium">Banner Iklan AdSense</div>
             </div>
-            <!-- LINK MENU LEGAL -->
+            
             <div class="text-center py-4">
                 <a href="legal.html" class="text-[11px] font-bold text-slate-400 hover:text-pink-600 underline transition">
                     Syarat & Ketentuan & Kebijakan Privasi
@@ -441,7 +449,8 @@
             userEmail: null, 
             userPhotoUrl: null, 
             analysisData: null,
-            selectedStylePrompt: null
+            selectedStylePrompt: null,
+            galleryData: [] // Variabel baru untuk menyimpan seluruh data galeri agar bisa difilter
         };
 
         let viewHistory = []; 
@@ -472,7 +481,6 @@
                 } 
             }
             
-            // Atur tombol kembali (Jangan muncul di beranda utama)
             document.getElementById('btn-back').className = (currentHistoryIdx > 0 && viewId !== 'view-input') ? "flex w-8 h-8 bg-slate-100 rounded-full items-center justify-center text-slate-600 active:bg-slate-200 transition text-sm" : "hidden"; 
         }
 
@@ -483,24 +491,20 @@
             } 
         }
         
-        // FUNGSI HARD RESET KEMBALI KE HOME
         function resetApp() { 
             viewHistory = []; 
             currentHistoryIdx = -1; 
             
-            // Kosongkan form input
             document.getElementById('input-gender').value = '';
             document.getElementById('input-tb').value = '';
             document.getElementById('input-bb').value = '';
             document.getElementById('input-style').value = '';
             document.getElementById('file-upload').value = '';
             
-            // Reset UI Pilihan
             document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.vibe-pill').forEach(b => b.classList.remove('active'));
             document.getElementById('upload-box').innerHTML = `<div class="text-5xl mb-3">📸</div><h3 class="font-bold text-pink-700 text-base">Tap untuk pilih foto</h3>`;
             
-            // Reset State & Cache
             state.photoUploaded = false; 
             state.photoFile = null; 
             state.analysisData = null; 
@@ -511,17 +515,14 @@
             localStorage.removeItem('tempTb'); 
             localStorage.removeItem('tempBb'); 
             localStorage.removeItem('tempStyle');
-            localStorage.removeItem('pendingRequestId'); // Hapus ingatan antrean saat reset
+            localStorage.removeItem('pendingRequestId');
             
-            // Kembalikan ke Step 1
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
             document.getElementById('step-1').classList.add('active');
 
-            // Buka halaman depan
             showView('view-input'); 
         }
 
-        // INIT SAAT HALAMAN DIBUKA & FITUR AUTO-RESUME
         window.onload = async () => {
             showView('view-input');
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -535,17 +536,15 @@
                 state.tokens = profile ? profile.tokens : 0; 
                 updateHeader();
 
-                // FITUR AUTO-RESUME JIKA USER SEMPAT KELUAR APLIKASI
                 const pendingReq = localStorage.getItem('pendingRequestId');
                 if (pendingReq) {
                     document.getElementById('loading-title').innerText = "Menjemput Foto... 📸";
                     document.getElementById('loading-desc').innerText = "Melanjutkan proses visualisasi yang sempat ditinggalkan...";
                     showView('view-loading');
                     pollGenerationStatus(pendingReq);
-                    return; // Berhenti di sini, biarkan fungsi pollGenerationStatus yang bekerja
+                    return;
                 }
 
-                // Lanjutkan proses jika sebelumnya login tertunda
                 if (localStorage.getItem('wantsToGenerate') === 'true') {
                     localStorage.removeItem('wantsToGenerate'); 
                     document.getElementById('input-gender').value = localStorage.getItem('tempGender') || '';
@@ -566,23 +565,12 @@
             }
         };
 
-        // NAVIGASI STEP WIZARD & VALIDASI
         function nextStep(step) {
-            if(step === 2 && !state.photoUploaded) { 
-                alert("Tolong unggah foto Anda terlebih dahulu!"); 
-                return; 
-            }
-            if(step === 3 && !document.getElementById('input-gender').value) { 
-                alert("Pilih gender Anda!"); 
-                return; 
-            }
+            if(step === 2 && !state.photoUploaded) { alert("Tolong unggah foto Anda terlebih dahulu!"); return; }
+            if(step === 3 && !document.getElementById('input-gender').value) { alert("Pilih gender Anda!"); return; }
             if(step === 4) {
                 const tb = parseInt(document.getElementById('input-tb').value);
-                // Validasi Tinggi Badan (50 - 250 cm)
-                if(!tb || tb < 50 || tb > 250) { 
-                    alert("⚠️ Tinggi badan tidak valid. Mohon masukkan angka yang realistis (50 - 250 cm)."); 
-                    return; 
-                }
+                if(!tb || tb < 50 || tb > 250) { alert("⚠️ Tinggi badan tidak valid. Mohon masukkan angka yang realistis (50 - 250 cm)."); return; }
             }
             document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
             document.getElementById('step-' + step).classList.add('active');
@@ -605,7 +593,6 @@
             document.getElementById('input-style').value = vibeText; 
         }
 
-        // HANDLE UPLOAD FOTO & KOMPRESI CANVAS
         document.getElementById('file-upload').addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
                 state.photoUploaded = true; 
@@ -616,23 +603,17 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 1500; // Resolusi lebih tinggi agar AI bisa membaca pori-pori wajah
+                        const MAX_WIDTH = 1500;
                         let scaleSize = 1;
-                        if(img.width > MAX_WIDTH) { 
-                            scaleSize = MAX_WIDTH / img.width; 
-                        }
+                        if(img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
                         canvas.width = img.width * scaleSize;
                         canvas.height = img.height * scaleSize;
                         
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         
-                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.95); // Kualitas 95%
-                        try { 
-                            localStorage.setItem('tempPhoto', compressedBase64); 
-                        } catch(err){ 
-                            console.error("Gagal menyimpan foto ke memori browser", err); 
-                        }
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.95);
+                        try { localStorage.setItem('tempPhoto', compressedBase64); } catch(err){}
                     };
                     img.src = evt.target.result;
                 }; 
@@ -642,23 +623,14 @@
             }
         });
 
-        // HANDLE SUBMIT DATA DARI WIZARD
         function triggerSubmitProcess() {
             const g = document.getElementById('input-gender').value;
             const tb = parseInt(document.getElementById('input-tb').value);
             const bb = parseInt(document.getElementById('input-bb').value);
             const st = document.getElementById('input-style').value;
             
-            if(!state.photoUploaded || !g || !tb || !bb || !st) { 
-                alert("Lengkapi semua data dan target acara!"); 
-                return; 
-            }
-            
-            // Validasi Berat Badan (20 - 250 kg)
-            if(bb < 20 || bb > 250) { 
-                alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (20 - 250 kg)."); 
-                return; 
-            }
+            if(!state.photoUploaded || !g || !tb || !bb || !st) { alert("Lengkapi semua data dan target acara!"); return; }
+            if(bb < 20 || bb > 250) { alert("⚠️ Berat badan tidak masuk akal. Mohon masukkan angka yang realistis (20 - 250 kg)."); return; }
 
             localStorage.setItem('tempGender', g); 
             localStorage.setItem('tempTb', tb); 
@@ -673,14 +645,11 @@
             }
         }
         
-        // FUNGSI AUTH LOGIN GOOGLE
-        // Digunakan oleh header (menghapus flag state)
         function triggerDirectLogin() { 
             localStorage.removeItem('wantsToGenerate'); 
             supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); 
         }
 
-        // Digunakan oleh kotak login di tengah proses (mempertahankan flag state)
         function handleGoogleLogin() { 
             supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); 
         }
@@ -703,7 +672,9 @@
         function openModal(id) { document.getElementById(id).classList.add('show'); }
         function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-        // FUNGSI LOAD MY STYLIO (GALERI HISTORY)
+        // ==========================================
+        // FITUR GALERI (DENGAN FILTER SEARCH)
+        // ==========================================
         async function openGallery() {
             if (!state.isLoggedIn) { 
                 alert("Silakan masuk (login) terlebih dahulu untuk melihat riwayat gaya Anda."); 
@@ -712,39 +683,84 @@
             }
             
             showView('view-gallery');
+            document.getElementById('search-gallery').value = ''; // Kosongkan input pencarian
+            
             const grid = document.getElementById('gallery-grid');
             const emptyState = document.getElementById('gallery-empty');
             
-            grid.innerHTML = '<div class="col-span-2 text-center text-sm text-slate-500 py-10">Memuat riwayat gaya Anda...</div>';
+            grid.innerHTML = '<div class="text-center text-sm text-slate-500 py-10 w-full">Memuat riwayat gaya Anda...</div>';
             emptyState.classList.add('hidden');
 
             try {
-                // Menarik data dari tabel Supabase 'user_gallery'
                 const { data, error } = await supabaseClient
                     .from('user_gallery')
-                    .select('image_url')
+                    .select('image_url, event_name, style_name')
                     .eq('user_id', state.userId)
                     .order('created_at', { ascending: false });
                 
                 if (error) throw error;
+                
+                state.galleryData = data || []; // Simpan semua data riwayat ke dalam memori
+                renderGalleryGrid(state.galleryData); // Tampilkan
 
-                grid.innerHTML = '';
-                if (!data || data.length === 0) {
-                    emptyState.classList.remove('hidden');
-                    emptyState.classList.add('flex');
-                } else {
-                    data.forEach(item => {
-                        grid.innerHTML += `
-                            <div class="rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-white relative aspect-[3/4] cursor-pointer" onclick="window.open('${item.image_url}', '_blank')">
-                                <img src="${item.image_url}" class="w-full h-full object-cover" loading="lazy">
-                            </div>
-                        `;
-                    });
-                }
             } catch (err) {
                 alert("Gagal memuat galeri Anda. Terjadi kesalahan jaringan.");
                 goBack();
             }
+        }
+
+        // Fungsi Render untuk menggambar ulang HTML Kartu Galeri
+        function renderGalleryGrid(dataToRender) {
+            const grid = document.getElementById('gallery-grid');
+            const emptyState = document.getElementById('gallery-empty');
+            
+            grid.innerHTML = '';
+            
+            if (!dataToRender || dataToRender.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                
+                // Jika pencarian tidak menemukan hasil
+                if (state.galleryData.length > 0) {
+                    emptyState.querySelector('h3').innerText = "Gaya Tidak Ditemukan";
+                    emptyState.querySelector('p').innerText = "Coba gunakan nama acara atau nama gaya yang lain.";
+                } else {
+                    emptyState.querySelector('h3').innerText = "Belum ada gaya visual";
+                    emptyState.querySelector('p').innerText = "Mulai audit dan generate gaya pertama Anda untuk melihat riwayatnya di sini.";
+                }
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+                
+                dataToRender.forEach(item => {
+                    const evName = item.event_name || 'Gaya Personal';
+                    const stName = item.style_name || 'Stylio Blueprint';
+                    
+                    grid.innerHTML += `
+                        <div class="gallery-card cursor-pointer" onclick="window.open('${item.image_url}', '_blank')">
+                            <img src="${item.image_url}" alt="${stName}" loading="lazy">
+                            <div class="gallery-card-info">
+                                <div class="gallery-card-title">✨ ${stName}</div>
+                                <div class="gallery-card-event">📍 Event: ${evName}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // Fungsi Filter dipanggil otomatis saat user mengetik di kotak pencarian
+        function filterGallery() {
+            const searchTerm = document.getElementById('search-gallery').value.toLowerCase();
+            
+            // Saring data di memori berdasarkan pencocokan nama acara atau gaya
+            const filteredData = state.galleryData.filter(item => {
+                const evName = (item.event_name || '').toLowerCase();
+                const stName = (item.style_name || '').toLowerCase();
+                return evName.includes(searchTerm) || stName.includes(searchTerm);
+            });
+            
+            renderGalleryGrid(filteredData);
         }
 
         // FUNGSI MEMULAI ANALISIS AI
@@ -873,7 +889,7 @@
                 let itemsHtml = style.items.map(item => `<li class="flex gap-2"><span class="text-pink-500">✓</span> ${item}</li>`).join('');
                 
                 listContainer.innerHTML += `
-                    <div class="style-card p-5" id="style-card-${idx}" onclick="selectMasterStyle(${idx}, '${style.prompt.replace(/'/g, "\\'")}')">
+                    <div class="style-card p-5" id="style-card-${idx}" onclick="selectMasterStyle(${idx}, '${style.prompt.replace(/'/g, "\\'")}', '${style.title.replace(/'/g, "\\'")}')">
                         ${badge}
                         <h4 class="font-extrabold text-slate-800 text-lg mb-1">${style.title}</h4>
                         <p class="text-xs text-slate-500 mb-4 font-medium">${style.desc}</p>
@@ -911,8 +927,9 @@
             });
         }
 
-        function selectMasterStyle(idx, promptStr) {
+        function selectMasterStyle(idx, promptStr, titleStr) {
             state.selectedStylePrompt = promptStr;
+            state.selectedStyleTitle = titleStr; 
             const container = document.getElementById('list-style-references');
             
             container.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
@@ -933,7 +950,6 @@
             } 
         }
 
-        // RENDER PILIHAN GAYA LAIN (UPSELL) DI LAYAR HASIL
         function renderOtherStyles() {
             const container = document.getElementById('other-styles-container'); 
             container.innerHTML = '';
@@ -943,7 +959,7 @@
             state.analysisData.styleReferences.forEach((style, idx) => {
                 if(style.prompt !== state.selectedStylePrompt) {
                     container.innerHTML += `
-                        <button onclick="selectAndGenerateOtherStyle('${style.prompt.replace(/'/g, "\\'")}')" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-left active:bg-slate-700 flex justify-between items-center transition">
+                        <button onclick="selectAndGenerateOtherStyle('${style.prompt.replace(/'/g, "\\'")}', '${style.title.replace(/'/g, "\\'")}')" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-xl text-left active:bg-slate-700 flex justify-between items-center transition">
                             <div class="pr-3">
                                 <h4 class="font-bold text-slate-200 text-sm mb-1">${style.title}</h4>
                                 <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">${style.desc}</p>
@@ -957,73 +973,114 @@
             });
         }
 
-        function selectAndGenerateOtherStyle(promptStr) {
+        function selectAndGenerateOtherStyle(promptStr, titleStr) {
             state.selectedStylePrompt = promptStr; 
+            state.selectedStyleTitle = titleStr;
             openTokenModal();
         }
 
-        let pollingInterval;
+        async function executeGenerate() {
+            closeModal('modal-token'); 
+            showView('view-loading');
+            
+            document.getElementById('loading-title').innerText = "Menyiapkan Jahitan 🪡";
+            document.getElementById('loading-desc').innerText = "Mengecek lemari pakaian digital Anda...";
 
+            try {
+                if (!state.userPhotoUrl) throw new Error("Sesi foto hilang. Silakan refresh halaman.");
+                if (!state.selectedStylePrompt) throw new Error("Silakan pilih Referensi Gaya terlebih dahulu.");
+                
+                const eventName = localStorage.getItem('tempStyle') || 'Acara Spesial';
 
-// FUNGSI RENDER AI 2-STEP PIPELINE
-async function executeGenerate() {
-    closeModal('modal-token'); 
-    showView('view-loading');
-    
-    document.getElementById('loading-title').innerText = "Menjahit Baju Virtual 🪡";
-    document.getElementById('loading-desc').innerText = "Menyesuaikan wajah dan postur (10-20 detik)...";
+                const { data: existingGen } = await supabaseClient
+                    .from('user_generations')
+                    .select('result_image_url')
+                    .eq('user_id', state.userId)
+                    .eq('items_selected->>blueprint_prompt', state.selectedStylePrompt) 
+                    .maybeSingle();
 
-    try {
-        if (!state.userPhotoUrl) throw new Error("Sesi foto hilang. Silakan refresh halaman dan mulai ulang.");
-        if (!state.selectedStylePrompt) throw new Error("Silakan pilih salah satu Referensi Gaya terlebih dahulu.");
-        
-        const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
-            body: { 
-                userId: state.userId,
-                userPhotoUrl: state.userPhotoUrl, 
-                gender: localStorage.getItem('tempGender') || 'Wanita',
-                englishPrompt: state.selectedStylePrompt
-            } 
-        });
+                if (existingGen && existingGen.result_image_url) {
+                    document.getElementById('final-ai-image').src = existingGen.result_image_url; 
+                    renderOtherStyles(); 
+                    showView('view-result');
+                    
+                    viewHistory = viewHistory.filter(v => v !== 'view-loading');
+                    currentHistoryIdx = viewHistory.length - 1;
+                    return; 
+                }
 
-        if (aiError) throw aiError; 
-        if (!aiData.success) throw new Error(aiData.error);
-        
-        // 1. LANGSUNG UPDATE UI & TAMPILKAN GAMBAR (Biar user tidak nunggu)
-        state.tokens -= 1; 
-        updateHeader();
-        
-        document.getElementById('final-ai-image').src = aiData.imageUrl; 
-        renderOtherStyles(); 
-        showView('view-result');
+                document.getElementById('loading-desc').innerText = "Menjahit baju dan menyesuaikan wajah (10-20 detik)...";
 
-        // 2. SIMPAN KE GALERI DI LATAR BELAKANG (Background Task)
-        // Perhatikan: Tidak ada kata 'await' di depannya!
-        supabaseClient
-            .from('user_gallery')
-            .insert([{ user_id: state.userId, image_url: aiData.imageUrl }])
-            .then(({ error: dbError }) => {
-                if (dbError) console.error("Gagal simpan galeri:", dbError.message);
-            })
-            .catch(saveErr => {
-                console.warn("Koneksi gagal saat simpan galeri:", saveErr);
-            });
+                const { data: aiData, error: aiError } = await supabaseClient.functions.invoke('generate-outfit', { 
+                    body: { 
+                        userId: state.userId,
+                        userPhotoUrl: state.userPhotoUrl, 
+                        gender: localStorage.getItem('tempGender') || 'Wanita',
+                        englishPrompt: state.selectedStylePrompt,
+                        email: state.userEmail,
+                        eventName: eventName,
+                        styleName: state.selectedStyleTitle
+                    }
+                });
 
-    } catch (error) { 
-        alert("GAGAL RENDER: " + error.message); 
-        goBack(); 
-    }
-}
-function downloadImage() { 
+                if (aiError) throw aiError; 
+                if (!aiData.success) throw new Error(aiData.error);
+                
+                state.tokens -= 1; 
+                updateHeader();
+                
+                document.getElementById('final-ai-image').src = aiData.imageUrl; 
+                renderOtherStyles(); 
+                showView('view-result');
+
+                viewHistory = viewHistory.filter(v => v !== 'view-loading');
+                currentHistoryIdx = viewHistory.length - 1;
+
+            } catch (error) { 
+                alert("GAGAL MENGIRIM INSTRUKSI: " + error.message); 
+                goBack(); 
+            }
+        }
+
+        function downloadImage() { 
             const url = document.getElementById('final-ai-image').src; 
             if(url) window.open(url, '_blank'); 
         }
-        
+
         async function shareToIG() { 
-            alert("Simpan gambar terlebih dahulu lalu post ke Instagram Anda!"); 
+            const imgUrl = document.getElementById('final-ai-image').src;
+            if (!imgUrl) { alert("Gambar belum siap dibagikan."); return; }
+
+            try {
+                const btn = document.querySelector('button[onclick="shareToIG()"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = "⏳ Menyiapkan...";
+
+                const response = await fetch(imgUrl);
+                const blob = await response.blob();
+                const file = new File([blob], 'stylio-outfit.jpg', { type: blob.type });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Gaya AI Stylio.id',
+                        text: 'Cek gaya pakaian dari AI Personal Stylist-ku di Stylio.id! ✨ #StylioID #AIFashion',
+                        files: [file]
+                    });
+                } else {
+                    await navigator.share({
+                        title: 'Gaya AI Stylio.id',
+                        text: 'Cek gaya pakaian dari AI Personal Stylist-ku di Stylio.id! ✨ #StylioID #AIFashion',
+                        url: imgUrl
+                    });
+                }
+                btn.innerHTML = originalText;
+            } catch (err) {
+                console.log('User membatalkan share atau error:', err);
+                const btn = document.querySelector('button[onclick="shareToIG()"]');
+                btn.innerHTML = "📸 Share IG";
+            }
         }
 
-        // LOGIKA PEMBAYARAN MIDTRANS
         async function buyToken(packageId) {
             showView('view-loading'); 
             document.getElementById('loading-title').innerText = "Menyiapkan Tagihan 💳"; 
